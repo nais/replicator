@@ -1,0 +1,27 @@
+# permissions for end users to view replicatorconfigurations.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: replicatorconfiguration-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: replicator
+    app.kubernetes.io/part-of: replicator
+    app.kubernetes.io/managed-by: kustomize
+  name: replicatorconfiguration-viewer-role
+rules:
+- apiGroups:
+  - nais.io.nais.io
+  resources:
+  - replicatorconfigurations
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - nais.io.nais.io
+  resources:
+  - replicatorconfigurations/status
+  verbs:
+  - get

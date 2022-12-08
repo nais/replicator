@@ -1,0 +1,4 @@
+## Append samples of your project ##
+resources:
+- nais.io_v1_replicatorconfiguration.yaml
+#+kubebuilder:scaffold:manifestskustomizesamples
