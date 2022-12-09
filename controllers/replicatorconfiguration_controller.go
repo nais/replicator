@@ -51,6 +51,7 @@ func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req c
 	_ = log.FromContext(ctx)
 
 	rc := &naisiov1.ReplicatorConfiguration{}
+
 	err := r.Get(ctx, req.NamespacedName, rc)
 	if err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)

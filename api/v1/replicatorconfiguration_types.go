@@ -2,15 +2,17 @@ package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 // ReplicatorConfigurationSpec defines the desired state of ReplicatorConfiguration
 type ReplicatorConfigurationSpec struct {
 	NamespaceSelector metav1.LabelSelector `json:"namespaceSelector,omitempty"`
 
-	// +kubebuilder:pruning:PreserveUnknownFields
-	Resources []unstructured.Unstructured `json:"resources,omitempty"`
+	Resources []Resource `json:"resources,omitempty"`
+}
+
+type Resource struct {
+	Template string `json:"template,omitempty"`
 }
 
 // ReplicatorConfigurationStatus defines the observed state of ReplicatorConfiguration

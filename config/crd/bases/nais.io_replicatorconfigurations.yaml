@@ -87,9 +87,11 @@ spec:
                 x-kubernetes-map-type: atomic
               resources:
                 items:
+                  properties:
+                    template:
+                      type: string
                   type: object
                 type: array
-                x-kubernetes-preserve-unknown-fields: true
             type: object
           status:
             description: ReplicatorConfigurationStatus defines the observed state
