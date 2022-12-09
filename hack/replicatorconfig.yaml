@@ -1,0 +1,27 @@
+apiVersion: nais.io/v1
+kind: ReplicatorConfiguration
+metadata:
+  name: alerting
+spec:
+  namespaceSelector:
+    matchLabels:
+      team-namespace: "true"
+  # values: 
+  #   secret:
+  #     - name: slack-webhook # loads data from secret (data: foo: bar)
+  resources:
+    - template: |
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: slack-webhook
+        type: Opaque
+        data:
+          stringData: {{ .Values.secret.slack-webhook }}
+      # apiVersion: v1
+      # type: kubernetes.io/Opaque
+      # metadata:
+      #   name: slack-webhook
+      # data:
+      #   stringData: {{ .Values.secret.slack-webhook }}
+      #      #apiKey: {{ .Values.foo }} # loaded from secret

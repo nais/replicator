@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -33,9 +34,9 @@ type ReplicatorConfigurationReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=nais.io.nais.io,resources=replicatorconfigurations,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=nais.io.nais.io,resources=replicatorconfigurations/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=nais.io.nais.io,resources=replicatorconfigurations/finalizers,verbs=update
+//+kubebuilder:rbac:groups=nais.io,resources=replicatorconfigurations,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=nais.io,resources=replicatorconfigurations/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=nais.io,resources=replicatorconfigurations/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -49,7 +50,13 @@ type ReplicatorConfigurationReconciler struct {
 func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	rc := &naisiov1.ReplicatorConfiguration{}
+	err := r.Get(ctx, req.NamespacedName, rc)
+	if err != nil {
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	fmt.Println(rc)
 
 	return ctrl.Result{}, nil
 }

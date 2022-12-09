@@ -12,7 +12,7 @@ metadata:
   name: replicatorconfiguration-editor-role
 rules:
 - apiGroups:
-  - nais.io.nais.io
+  - nais.io
   resources:
   - replicatorconfigurations
   verbs:
@@ -24,7 +24,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - nais.io.nais.io
+  - nais.io
   resources:
   - replicatorconfigurations/status
   verbs:

@@ -12,7 +12,7 @@ metadata:
   name: replicatorconfiguration-viewer-role
 rules:
 - apiGroups:
-  - nais.io.nais.io
+  - nais.io
   resources:
   - replicatorconfigurations
   verbs:
@@ -20,7 +20,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - nais.io.nais.io
+  - nais.io
   resources:
   - replicatorconfigurations/status
   verbs:

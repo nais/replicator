@@ -1,4 +1,4 @@
-apiVersion: nais.io.nais.io/v1
+apiVersion: nais.io/v1
 kind: ReplicatorConfiguration
 metadata:
   labels:
