@@ -15,9 +15,29 @@ spec:
   resources:
     - template: | 
         apiVersion: v1
+        kind: Secret
         type: kubernetes.io/Opaque
         metadata:
           name: slack-webhook
+        stringData: 
+          apiKey: {{ .Values.foo }} # loaded from secret
+    - template: | 
+        kind: AlertmanagerConfig
+        apiVersion: monitoring.coreos.com
+        metadata:
+          name: yolo-alerts
         data:
-          stringData: 
-             apiKey: {{ .Values.slack-webhook }} # loaded from secret
+          receivers:
+            - name: yolo
+              slackConfigs:
+                - apiURL:
+                    key: apiUrl
+                    name: slack-webhook
+                  sendResolved: true
+          route:
+            receiver: yolo
+            groupBy:
+              - alertname
+            groupInterval: 5m
+            groupWait: 10s
+            repeatInterval: 1h    

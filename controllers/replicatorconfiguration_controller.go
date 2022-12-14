@@ -20,7 +20,10 @@ import (
 	"context"
 	"fmt"
 
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"nais/replicator/internal/parser"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -52,13 +55,38 @@ func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req c
 	fmt.Println("Reconciling")
 
 	rc := &naisiov1.ReplicatorConfiguration{}
-
 	err := r.Get(ctx, req.NamespacedName, rc)
 	if err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	fmt.Println(rc)
+	namespaces, err := r.listNamespaces(ctx, &rc.Spec.NamespaceSelector)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	fmt.Printf("Found %d namespaces matching the selector\n", len(namespaces.Items))
+
+	values := &parser.TemplateValues{
+		Values: map[string]string{
+			"foo": "bar",
+		},
+	}
+	resources, err := parser.Resources(values, *rc)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	for _, ns := range namespaces.Items {
+		for _, resource := range resources {
+			resource.Object["metadata"].(map[string]interface{})["namespace"] = ns.Name
+			err = r.Create(ctx, resource)
+			if err != nil {
+				fmt.Printf("Error creating resource: %v\n", err)
+			}
+		}
+	}
+	fmt.Printf("resources: %d\n", len(resources))
+
+	//fmt.Printf("namspaces: %v", namespaces)
 
 	return ctrl.Result{}, nil
 }
@@ -68,4 +96,18 @@ func (r *ReplicatorConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) e
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&naisiov1.ReplicatorConfiguration{}).
 		Complete(r)
+}
+
+func (r *ReplicatorConfigurationReconciler) listNamespaces(ctx context.Context, ls *metav1.LabelSelector) (v1.NamespaceList, error) {
+	selector, err := metav1.LabelSelectorAsSelector(ls)
+	if err != nil {
+		return v1.NamespaceList{}, err
+	}
+
+	var namespaces v1.NamespaceList
+	err = r.List(ctx, &namespaces, &client.ListOptions{LabelSelector: selector})
+	if err != nil {
+		return v1.NamespaceList{}, err
+	}
+	return namespaces, nil
 }
