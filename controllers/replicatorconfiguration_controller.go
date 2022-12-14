@@ -49,6 +49,7 @@ type ReplicatorConfigurationReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.1/pkg/reconcile
 func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
+	fmt.Println("Reconciling")
 
 	rc := &naisiov1.ReplicatorConfiguration{}
 

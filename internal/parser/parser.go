@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"text/template"
 
+	naisiov1 "nais/replicator/api/v1"
+
 	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	naisiov1 "nais/replicator/api/v1"
 )
 
 // from CRD

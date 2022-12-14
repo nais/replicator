@@ -17,8 +17,10 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
 	"os"
+	"time"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -33,6 +35,7 @@ import (
 
 	naisiov1 "nais/replicator/api/v1"
 	"nais/replicator/controllers"
+	"nais/replicator/internal/replicator"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -106,6 +109,10 @@ func main() {
 		setupLog.Error(err, "unable to set up ready check")
 		os.Exit(1)
 	}
+
+	r := replicator.New(mgr.GetClient(), 10*time.Second)
+
+	r.Run(context.Background())
 
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {

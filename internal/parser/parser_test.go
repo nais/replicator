@@ -5,9 +5,10 @@ import (
 	"os"
 	"testing"
 
+	naisiov1 "nais/replicator/api/v1"
+
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
-	naisiov1 "nais/replicator/api/v1"
 )
 
 func TestTodo(t *testing.T) {
