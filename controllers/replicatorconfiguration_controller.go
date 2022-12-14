@@ -20,11 +20,10 @@ import (
 	"context"
 	"fmt"
 
-	"nais/replicator/internal/parser"
-
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"nais/replicator/internal/parser"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -72,15 +71,13 @@ func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req c
 			"foo": "bar",
 		},
 	}
+	resources, err := parser.Resources(values, *rc)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
 	for _, ns := range namespaces.Items {
-
-		resources, err := parser.Resources(values, rc.Spec.Resources)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-
 		for _, resource := range resources {
-			resource.SetNamespace(ns.Name)
+			resource.Object["metadata"].(map[string]interface{})["namespace"] = ns.Name
 			err = r.Create(ctx, resource)
 			if err != nil {
 				fmt.Printf("Error creating resource: %v\n", err)
