@@ -6,12 +6,6 @@ spec:
   namespaceSelector:
     matchLabels:
       team-namespace: "true"
-#    values:
-#      secrets:
-#        - name: slack-webhook # loads data from secret (data: foo: bar)
-#  values:
-#    secret:
-#      - name: slack-webhook # loads data from secret (data: foo: bar)
   resources:
     - template: | 
         apiVersion: v1

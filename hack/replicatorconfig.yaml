@@ -6,18 +6,11 @@ spec:
   namespaceSelector:
     matchLabels:
       team-namespace: "true"
-#    values:
-#      secrets:
-#        - name: slack-webhook # loads data from secret (data: foo: bar)
-#  values:
-#    secret:
-#      - name: slack-webhook # loads data from secret (data: foo: bar)
   resources:
     - template: | 
         apiVersion: v1
         type: kubernetes.io/Opaque
         metadata:
           name: slack-webhook
-        data:
-          stringData: 
-             apiKey: {{ .Values.slack-webhook }} # loaded from secret
+        stringData: 
+            apiKey: {{ .Values.tommy }} # loaded from secret

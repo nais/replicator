@@ -25,15 +25,7 @@ type TemplateValues struct {
 	Values map[string]string
 }
 
-func Resources(values *TemplateValues, r naisiov1.ReplicatorConfiguration) ([]*unstructured.Unstructured, error) {
-	resources, err := parseResources(values, r.Spec.Resources)
-	if err != nil {
-		return nil, err
-	}
-	return resources, nil
-}
-
-func parseResources(values *TemplateValues, resources []naisiov1.Resource) ([]*unstructured.Unstructured, error) {
+func Resources(values *TemplateValues, resources []naisiov1.Resource) ([]*unstructured.Unstructured, error) {
 	var objects []*unstructured.Unstructured
 	for _, r := range resources {
 		resource, err := RenderTemplate(values, r.Template)
