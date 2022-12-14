@@ -19,6 +19,8 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	"nais/replicator/internal/parser"
 
@@ -81,17 +83,30 @@ func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req c
 
 		for _, resource := range resources {
 			resource.SetNamespace(ns.Name)
-			err = r.Create(ctx, resource)
+			err = r.createResource(ctx, resource)
 			if err != nil {
-				fmt.Printf("Error creating resource: %v\n", err)
+				fmt.Printf("creating resource: %v\n", err)
 			}
 		}
 	}
-	fmt.Printf("resources: %d\n", len(resources))
 
 	//fmt.Printf("namspaces: %v", namespaces)
 
 	return ctrl.Result{}, nil
+}
+
+func (r ReplicatorConfigurationReconciler) createResource(ctx context.Context, resource *unstructured.Unstructured) error {
+	err := r.Create(ctx, resource)
+	if client.IgnoreAlreadyExists(err) != nil {
+		return fmt.Errorf("creating resource: %v", err)
+	}
+	if errors.IsAlreadyExists(err) {
+		err := r.Update(ctx, resource)
+		if err != nil {
+			return fmt.Errorf("updating resource: %v", err)
+		}
+	}
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

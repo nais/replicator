@@ -24,7 +24,7 @@ func TestTodo(t *testing.T) {
 	err = yaml.Unmarshal(b, &r)
 	assert.NoError(t, err)
 
-	resources, err := Resources(values, r)
+	resources, err := Resources(values, r.Spec.Resources)
 	assert.NoError(t, err)
 	fmt.Printf("resources: %v\n", resources[0].Object["data"])
 
