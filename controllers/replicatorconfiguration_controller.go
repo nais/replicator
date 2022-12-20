@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"nais/replicator/internal/parser"
@@ -69,10 +70,17 @@ func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req c
 	fmt.Printf("Found %d namespaces matching the selector\n", len(namespaces.Items))
 
 	values := &parser.TemplateValues{
-		Values: map[string]string{
-			"foo": "bar",
-		},
+		Values: map[string]string{},
 	}
+
+	if err := r.loadSecrets(ctx, rc, values); err != nil {
+		return ctrl.Result{}, err
+	}
+
+	if err := r.loadConfigMaps(ctx, rc, values); err != nil {
+		return ctrl.Result{}, err
+	}
+
 	for _, ns := range namespaces.Items {
 		err := parser.ParseAnnotations(ns.ObjectMeta.Annotations, values)
 		if err != nil {
@@ -92,8 +100,6 @@ func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req c
 			}
 		}
 	}
-
-	//fmt.Printf("namspaces: %v", namespaces)
 
 	return ctrl.Result{}, nil
 }
@@ -131,4 +137,36 @@ func (r *ReplicatorConfigurationReconciler) listNamespaces(ctx context.Context, 
 		return v1.NamespaceList{}, err
 	}
 	return namespaces, nil
+}
+
+// TODO clean up printing
+func (r *ReplicatorConfigurationReconciler) loadSecrets(ctx context.Context, rc *naisiov1.ReplicatorConfiguration, values *parser.TemplateValues) error {
+	for _, s := range rc.Spec.Values.Secrets {
+
+		var secret v1.Secret
+		if err := r.Get(ctx, client.ObjectKey{Name: s.Name, Namespace: s.Namespace}, &secret); err != nil {
+			return err
+		}
+
+		for k, v := range secret.Data {
+			values.Values[k] = string(v)
+		}
+	}
+	return nil
+}
+
+// TODO: see if we can use the same function for both secrets and configmaps
+func (r *ReplicatorConfigurationReconciler) loadConfigMaps(ctx context.Context, rc *naisiov1.ReplicatorConfiguration, values *parser.TemplateValues) error {
+	for _, s := range rc.Spec.Values.ConfigMaps {
+
+		var configMap v1.ConfigMap
+		if err := r.Get(ctx, client.ObjectKey{Name: s.Name, Namespace: s.Namespace}, &configMap); err != nil {
+			return err
+		}
+
+		for k, v := range configMap.Data {
+			values.Values[k] = v
+		}
+	}
+	return nil
 }

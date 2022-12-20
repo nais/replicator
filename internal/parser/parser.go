@@ -33,9 +33,6 @@ func Resources(values *TemplateValues, resources []naisiov1.Resource) ([]*unstru
 		if err != nil {
 			return nil, err
 		}
-
-		fmt.Printf("resource Kind: %s\n", resource.GetKind())
-		fmt.Printf("resource Namespace: %s\n", resource.GetNamespace())
 		objects = append(objects, resource)
 	}
 	return objects, nil
@@ -44,14 +41,12 @@ func Resources(values *TemplateValues, resources []naisiov1.Resource) ([]*unstru
 func ParseAnnotations(annotations map[string]string, values *TemplateValues) error {
 	for key, value := range annotations {
 		kp := strings.Split(key, "replicator.nais.io/")
-		fmt.Printf("array: %s\n", kp)
 		if len(kp) < 2 {
 			fmt.Printf("invalid annotation: %s", key)
 			continue
 		}
 		values.Values[kp[1]] = value
 	}
-
 	return nil
 }
 

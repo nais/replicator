@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secret-to-load
+type: kubernetes.io/Opaque
+stringData:
+  apiKey: the-api-key
+  foo: bar
+  thirdkey: value3
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configmap-to-load
+data:
+  cm1: value1
+  cm2: value2

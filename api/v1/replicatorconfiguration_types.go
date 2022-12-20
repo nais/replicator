@@ -7,8 +7,18 @@ import (
 // ReplicatorConfigurationSpec defines the desired state of ReplicatorConfiguration
 type ReplicatorConfigurationSpec struct {
 	NamespaceSelector metav1.LabelSelector `json:"namespaceSelector,omitempty"`
+	Values            Values               `json:"values,omitempty"`
+	Resources         []Resource           `json:"resources,omitempty"`
+}
 
-	Resources []Resource `json:"resources,omitempty"`
+type Values struct {
+	Secrets    []ConfigResource `json:"secrets,omitempty"`
+	ConfigMaps []ConfigResource `json:"configMaps,omitempty"`
+}
+
+type ConfigResource struct {
+	Name      string `json:"name,omitempty"`
+	Namespace string `json:"namespace,omitempty"`
 }
 
 type Resource struct {
