@@ -3,6 +3,7 @@ package parser
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"text/template"
 
 	naisiov1 "nais/replicator/api/v1"
@@ -38,6 +39,20 @@ func Resources(values *TemplateValues, resources []naisiov1.Resource) ([]*unstru
 		objects = append(objects, resource)
 	}
 	return objects, nil
+}
+
+func ParseAnnotations(annotations map[string]string, values *TemplateValues) error {
+	for key, value := range annotations {
+		kp := strings.Split(key, "replicator.nais.io/")
+		fmt.Printf("array: %s\n", kp)
+		if len(kp) < 2 {
+			fmt.Printf("invalid annotation: %s", key)
+			continue
+		}
+		values.Values[kp[1]] = value
+	}
+
+	return nil
 }
 
 func RenderTemplate(values any, tpl string) (*unstructured.Unstructured, error) {

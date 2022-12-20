@@ -9,6 +9,7 @@ spec:
   resources:
     - template: | 
         apiVersion: v1
+        kind: Secret
         type: kubernetes.io/Opaque
         metadata:
           name: slack-webhook

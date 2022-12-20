@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-
 	"nais/replicator/internal/parser"
 
 	v1 "k8s.io/api/core/v1"
@@ -75,6 +74,10 @@ func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req c
 		},
 	}
 	for _, ns := range namespaces.Items {
+		err := parser.ParseAnnotations(ns.ObjectMeta.Annotations, values)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 
 		resources, err := parser.Resources(values, rc.Spec.Resources)
 		if err != nil {
