@@ -1,0 +1,17 @@
+apiVersion: nais.io/v1
+kind: ReplicatorConfiguration
+metadata:
+  name: alerting-validate
+spec:
+  namespaceSelector:
+    matchLabels:
+      team-namespace: "true"
+  values:
+    secrets:
+      - name: secret-to-load
+        namespace: yolo
+#      - namespace #if empty it will use the namespace of the replicatorconfig
+    configMaps:
+      - name: configmap-to-load
+        namespace: yolo
+  resources:
