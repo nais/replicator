@@ -6,28 +6,15 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - ""
+  - '*'
   resources:
-  - configmaps
+  - '*'
   verbs:
+  - create
   - get
   - list
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - namespaces
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - secrets
-  verbs:
-  - get
-  - list
+  - patch
+  - update
   - watch
 - apiGroups:
   - nais.io
