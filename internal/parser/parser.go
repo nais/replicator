@@ -1,14 +1,11 @@
 package parser
 
 import (
-	"bytes"
 	"fmt"
-	"strings"
-	"text/template"
-
 	naisiov1 "nais/replicator/api/v1"
+	"nais/replicator/internal/util"
+	"strings"
 
-	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
@@ -29,7 +26,7 @@ type TemplateValues struct {
 func Resources(values *TemplateValues, resources []naisiov1.Resource) ([]*unstructured.Unstructured, error) {
 	var objects []*unstructured.Unstructured
 	for _, r := range resources {
-		resource, err := RenderTemplate(values, r.Template)
+		resource, err := util.RenderTemplate(values, r.Template)
 		if err != nil {
 			return nil, err
 		}
@@ -48,53 +45,4 @@ func ParseAnnotations(annotations map[string]string, values *TemplateValues) err
 		values.Values[kp[1]] = value
 	}
 	return nil
-}
-
-func RenderTemplate(values any, tpl string) (*unstructured.Unstructured, error) {
-	rdr, err := renderString(values, tpl)
-	if err != nil {
-		return nil, err
-	}
-
-	var v any
-	if err := yaml.Unmarshal([]byte(rdr), &v); err != nil {
-		return nil, err
-	}
-	v = repairMapAny(v)
-
-	u := &unstructured.Unstructured{
-		Object: v.(map[string]interface{}),
-	}
-
-	return u, nil
-}
-
-func repairMapAny(v any) any {
-	switch t := v.(type) {
-	case []any:
-		for i, v := range t {
-			t[i] = repairMapAny(v)
-		}
-	case map[any]any:
-		nm := make(map[string]any)
-		for k, v := range t {
-			nm[k.(string)] = repairMapAny(v)
-		}
-		return nm
-	}
-	return v
-}
-
-func renderString(values any, tpl string) (string, error) {
-	t := template.New("tpl")
-	t, err := t.Parse(tpl)
-	if err != nil {
-		return "", err
-	}
-
-	buf := &bytes.Buffer{}
-	if err := t.Execute(buf, values); err != nil {
-		return "", err
-	}
-	return buf.String(), nil
 }

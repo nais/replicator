@@ -19,6 +19,7 @@ package v1
 import (
 	"fmt"
 	"k8s.io/apimachinery/pkg/runtime"
+	"nais/replicator/internal/util"
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -40,16 +41,13 @@ var _ webhook.Validator = &ReplicatorConfiguration{}
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (r *ReplicatorConfiguration) ValidateCreate() error {
 	replicatorconfigurationlog.Info("validate create", "name", r.Name)
-
-	return r.validateReplicationConfiguration()
+	return r.validateReplicatorConfiguration()
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (r *ReplicatorConfiguration) ValidateUpdate(old runtime.Object) error {
 	replicatorconfigurationlog.Info("validate update", "name", r.Name)
-
-	// TODO(user): fill in your validation logic upon object update.
-	return nil
+	return r.validateReplicatorConfiguration()
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
@@ -59,8 +57,7 @@ func (r *ReplicatorConfiguration) ValidateDelete() error {
 	// TODO(user): fill in your validation logic upon object deletion.
 	return nil
 }
-func (r *ReplicatorConfiguration) validateReplicationConfiguration() error {
-	fmt.Printf("Validating ReplicationConfiguration %v", r.Spec.Resources)
+func (r *ReplicatorConfiguration) validateReplicatorConfiguration() error {
 	if len(r.Spec.Resources) == 0 {
 		return fmt.Errorf("no resources specified")
 	}
@@ -69,23 +66,19 @@ func (r *ReplicatorConfiguration) validateReplicationConfiguration() error {
 		if resource.Template == "" {
 			return fmt.Errorf("template is empty")
 		}
-		//resource, err := parser.RenderTemplate(unstructured.Unstructured{}, resource.Template)
-		//if err != nil {
-		//	return fmt.Errorf("failed to render template: %w", err)
-		//}
-		//if resource.GetKind() == "" {
-		//	return fmt.Errorf("kind is empty")
-		//}
-		//if resource.GetAPIVersion() == "" {
-		//	return fmt.Errorf("apiVersion is empty")
-		//}
-		//if resource.GetName() == "" {
-		//	return fmt.Errorf("name is empty")
-		//}
-	}
-
-	if len(r.Spec.Values.Secrets) == 0 && len(r.Spec.Values.ConfigMaps) == 0 {
-		return fmt.Errorf("no values specified")
+		resource, err := util.RenderTemplate(map[string]string{}, resource.Template, util.WithOption("missingkey=invalid"))
+		if err != nil {
+			return fmt.Errorf("failed to render template: %w", err)
+		}
+		if resource.GetKind() == "" {
+			return fmt.Errorf("kind is empty")
+		}
+		if resource.GetAPIVersion() == "" {
+			return fmt.Errorf("apiVersion is empty")
+		}
+		if resource.GetName() == "" {
+			return fmt.Errorf("name is empty")
+		}
 	}
 
 	return nil

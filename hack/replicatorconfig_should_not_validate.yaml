@@ -15,3 +15,10 @@ spec:
       - name: configmap-to-load
         namespace: yolo
   resources:
+  - template: | 
+      apiVersion: v1
+      type: kubernetes.io/Opaque
+      metadata:
+        name: slack-webhook
+      stringData: 
+          apiKey: {{ .Values.tommy }} # loaded from secret
