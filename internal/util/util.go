@@ -16,6 +16,10 @@ func WithOption(option string) RenderOption {
 }
 
 func RenderTemplate(values any, tpl string, options ...RenderOption) (*unstructured.Unstructured, error) {
+	if options == nil {
+		options = []RenderOption{WithOption("missingkey=error")}
+	}
+
 	rdr, err := renderString(values, tpl, options...)
 	if err != nil {
 		return nil, err
@@ -51,7 +55,7 @@ func repairMapAny(v any) any {
 }
 
 func renderString(values any, tpl string, tplOptions ...RenderOption) (string, error) {
-	t := template.New("tpl")
+	t := template.New("tpl").Delims("[[", "]]")
 	for _, option := range tplOptions {
 		t = option(t)
 	}

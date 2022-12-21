@@ -6,6 +6,10 @@ spec:
   namespaceSelector:
     matchLabels:
       team-namespace: "true"
+  values:
+    secrets:
+      - name: secret-to-load
+        namespace: replicator-system
   resources:
     - template: | 
         apiVersion: v1
@@ -14,24 +18,27 @@ spec:
         metadata:
           name: slack-webhook
         stringData: 
-          apiKey: {{ .Values.foo }} # loaded from secret
+          apiKey: [[ .Values.s1 ]] # loaded from secret
     - template: | 
         kind: AlertmanagerConfig
-        apiVersion: monitoring.coreos.com
+        apiVersion: monitoring.coreos.com/v1alpha1
         metadata:
           name: yolo-alerts
-        data:
+        spec:
           receivers:
             - name: yolo
               slackConfigs:
                 - apiURL:
                     key: apiUrl
                     name: slack-webhook
+                  color: '{{ template "slack.color" . }}'
                   sendResolved: true
+                  text: '{{ template "slack.text" . }}'
+                  title: '{{ template "slack.title" . }}'
           route:
             receiver: yolo
             groupBy:
               - alertname
             groupInterval: 5m
             groupWait: 10s
-            repeatInterval: 1h    
+            repeatInterval: 1h

@@ -99,12 +99,20 @@ func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req c
 func (r ReplicatorConfigurationReconciler) createResource(ctx context.Context, resource *unstructured.Unstructured) error {
 	err := r.Create(ctx, resource)
 	if client.IgnoreAlreadyExists(err) != nil {
-		return fmt.Errorf("creating resource: %v", err)
+		return fmt.Errorf("creating resource: %w", err)
 	}
 	if errors.IsAlreadyExists(err) {
-		err := r.Update(ctx, resource)
+		existing := &unstructured.Unstructured{}
+		existing.SetGroupVersionKind(resource.GroupVersionKind())
+		err := r.Get(ctx, client.ObjectKeyFromObject(resource), existing)
 		if err != nil {
-			return fmt.Errorf("updating resource: %v", err)
+			return fmt.Errorf("getting existing resource: %w", err)
+		}
+		resource.SetResourceVersion(existing.GetResourceVersion())
+
+		err = r.Update(ctx, resource)
+		if err != nil {
+			return fmt.Errorf("updating resource: %w", err)
 		}
 	}
 	return nil
