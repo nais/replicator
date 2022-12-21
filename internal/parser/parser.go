@@ -1,10 +1,10 @@
 package parser
 
 import (
-	"fmt"
+	"strings"
+
 	naisiov1 "nais/replicator/api/v1"
 	"nais/replicator/internal/util"
-	"strings"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
@@ -38,8 +38,7 @@ func Resources(values *TemplateValues, resources []naisiov1.Resource) ([]*unstru
 func ParseAnnotations(annotations map[string]string, values *TemplateValues) error {
 	for key, value := range annotations {
 		kp := strings.Split(key, "replicator.nais.io/")
-		if len(kp) < 2 {
-			fmt.Printf("invalid annotation: %s", key)
+		if len(kp) != 2 {
 			continue
 		}
 		values.Values[kp[1]] = value

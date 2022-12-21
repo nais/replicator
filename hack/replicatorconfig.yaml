@@ -1,7 +1,7 @@
 apiVersion: nais.io/v1
 kind: ReplicatorConfiguration
 metadata:
-  name: alerting
+  name: create-secrets
 spec:
   namespaceSelector:
     matchLabels:
@@ -9,17 +9,19 @@ spec:
   values:
     secrets:
       - name: secret-to-load
-        namespace: yolo
+        namespace: replicator-system
 #      - namespace #if empty it will use the namespace of the replicatorconfig
     configMaps:
       - name: configmap-to-load
-        namespace: yolo
+        namespace: replicator-system
   resources:
     - template: | 
         apiVersion: v1
         kind: Secret
         type: kubernetes.io/Opaque
         metadata:
-          name: slack-webhook
+          name: replicator-secret-1
         stringData: 
-            apiKey: {{ .Values.tommy }} # loaded from secret
+          fromSecret: {{ .Values.s1 }}
+          fromConfigMap: {{ .Values.cm1 }}
+          fromNs: {{ .Values.ns_value }}
