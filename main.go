@@ -17,7 +17,6 @@ limitations under the License.
 package main
 
 import (
-	"context"
 	"flag"
 	"os"
 	"time"
@@ -35,7 +34,6 @@ import (
 
 	naisiov1 "nais/replicator/api/v1"
 	"nais/replicator/controllers"
-	"nais/replicator/internal/replicator"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -122,10 +120,6 @@ func main() {
 		setupLog.Error(err, "unable to set up ready check")
 		os.Exit(1)
 	}
-
-	r := replicator.New(mgr.GetClient(), 10*time.Second)
-
-	r.Run(context.Background())
 
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {

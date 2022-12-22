@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"k8s.io/apimachinery/pkg/runtime"
-	"nais/replicator/internal/util"
+	"nais/replicator/internal/template"
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -49,7 +49,7 @@ func (r *ReplicatorConfiguration) validateReplicatorConfiguration() error {
 		if resource.Template == "" {
 			return fmt.Errorf("template is empty")
 		}
-		resource, err := util.RenderTemplate(map[string]string{}, resource.Template, util.WithOption("missingkey=invalid"))
+		resource, err := template.RenderTemplate(map[string]string{}, resource.Template, template.WithOption("missingkey=invalid"))
 		if err != nil {
 			return fmt.Errorf("failed to render template: %w", err)
 		}

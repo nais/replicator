@@ -1,10 +1,11 @@
-package util
+package template
 
 import (
 	"bytes"
+	"text/template"
+
 	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"text/template"
 )
 
 type RenderOption func(*template.Template) *template.Template

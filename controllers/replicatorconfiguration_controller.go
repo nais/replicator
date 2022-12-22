@@ -22,7 +22,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"nais/replicator/internal/parser"
+	"nais/replicator/internal/replicator"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -61,25 +61,15 @@ func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req c
 	}
 	fmt.Printf("Found %d namespaces matching the selector\n", len(namespaces.Items))
 
-	values := &parser.TemplateValues{
-		Values: map[string]string{},
-	}
-
-	if err := r.loadSecrets(ctx, rc, values); err != nil {
-		return ctrl.Result{}, err
-	}
-
-	if err := r.loadConfigMaps(ctx, rc, values); err != nil {
-		return ctrl.Result{}, err
-	}
+	values, err := replicator.LoadValues(ctx, r.Client, rc)
 
 	for _, ns := range namespaces.Items {
-		err := parser.ParseAnnotations(ns.ObjectMeta.Annotations, values)
+		err := replicator.AddAnnotations(ns.ObjectMeta.Annotations, values)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
 
-		resources, err := parser.Resources(values, rc.Spec.Resources)
+		resources, err := replicator.ParseResources(values, rc.Spec.Resources)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -94,28 +84,6 @@ func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req c
 	}
 
 	return ctrl.Result{}, nil
-}
-
-func (r ReplicatorConfigurationReconciler) createResource(ctx context.Context, resource *unstructured.Unstructured) error {
-	err := r.Create(ctx, resource)
-	if client.IgnoreAlreadyExists(err) != nil {
-		return fmt.Errorf("creating resource: %w", err)
-	}
-	if errors.IsAlreadyExists(err) {
-		existing := &unstructured.Unstructured{}
-		existing.SetGroupVersionKind(resource.GroupVersionKind())
-		err := r.Get(ctx, client.ObjectKeyFromObject(resource), existing)
-		if err != nil {
-			return fmt.Errorf("getting existing resource: %w", err)
-		}
-		resource.SetResourceVersion(existing.GetResourceVersion())
-
-		err = r.Update(ctx, resource)
-		if err != nil {
-			return fmt.Errorf("updating resource: %w", err)
-		}
-	}
-	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -139,33 +107,23 @@ func (r *ReplicatorConfigurationReconciler) listNamespaces(ctx context.Context, 
 	return namespaces, nil
 }
 
-// TODO clean up printing
-func (r *ReplicatorConfigurationReconciler) loadSecrets(ctx context.Context, rc *naisiov1.ReplicatorConfiguration, values *parser.TemplateValues) error {
-	for _, s := range rc.Spec.Values.Secrets {
-
-		var secret v1.Secret
-		if err := r.Get(ctx, client.ObjectKey{Name: s.Name, Namespace: s.Namespace}, &secret); err != nil {
-			return err
-		}
-
-		for k, v := range secret.Data {
-			values.Values[k] = string(v)
-		}
+func (r ReplicatorConfigurationReconciler) createResource(ctx context.Context, resource *unstructured.Unstructured) error {
+	err := r.Create(ctx, resource)
+	if client.IgnoreAlreadyExists(err) != nil {
+		return fmt.Errorf("creating resource: %w", err)
 	}
-	return nil
-}
-
-// TODO: see if we can use the same function for both secrets and configmaps
-func (r *ReplicatorConfigurationReconciler) loadConfigMaps(ctx context.Context, rc *naisiov1.ReplicatorConfiguration, values *parser.TemplateValues) error {
-	for _, s := range rc.Spec.Values.ConfigMaps {
-
-		var configMap v1.ConfigMap
-		if err := r.Get(ctx, client.ObjectKey{Name: s.Name, Namespace: s.Namespace}, &configMap); err != nil {
-			return err
+	if errors.IsAlreadyExists(err) {
+		existing := &unstructured.Unstructured{}
+		existing.SetGroupVersionKind(resource.GroupVersionKind())
+		err := r.Get(ctx, client.ObjectKeyFromObject(resource), existing)
+		if err != nil {
+			return fmt.Errorf("getting existing resource: %w", err)
 		}
+		resource.SetResourceVersion(existing.GetResourceVersion())
 
-		for k, v := range configMap.Data {
-			values.Values[k] = v
+		err = r.Update(ctx, resource)
+		if err != nil {
+			return fmt.Errorf("updating resource: %w", err)
 		}
 	}
 	return nil
