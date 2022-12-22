@@ -4,8 +4,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// ReplicatorConfigurationSpec defines the desired state of ReplicatorConfiguration
-type ReplicatorConfigurationSpec struct {
+// ReplicationConfigSpec defines the desired state of ReplicationConfig
+type ReplicationConfigSpec struct {
 	NamespaceSelector metav1.LabelSelector `json:"namespaceSelector,omitempty"`
 	Values            Values               `json:"values,omitempty"`
 	Resources         []Resource           `json:"resources,omitempty"`
@@ -25,34 +25,34 @@ type Resource struct {
 	Template string `json:"template,omitempty"`
 }
 
-// ReplicatorConfigurationStatus defines the observed state of ReplicatorConfiguration
-type ReplicatorConfigurationStatus struct {
+// ReplicationConfigStatus defines the observed state of ReplicationConfig
+type ReplicationConfigStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
-//+kubebuilder:resource:scope=Cluster:shortName=repconf
+//+kubebuilder:resource:scope=Cluster,shortName=repconf
 
-// ReplicatorConfiguration is the Schema for the replicatorconfigurations API
-type ReplicatorConfiguration struct {
+// ReplicationConfig is the Schema for the replicatorconfigurations API
+type ReplicationConfig struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ReplicatorConfigurationSpec   `json:"spec,omitempty"`
-	Status ReplicatorConfigurationStatus `json:"status,omitempty"`
+	Spec   ReplicationConfigSpec   `json:"spec,omitempty"`
+	Status ReplicationConfigStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
-// ReplicatorConfigurationList contains a list of ReplicatorConfiguration
-type ReplicatorConfigurationList struct {
+// ReplicationConfigList contains a list of ReplicationConfig
+type ReplicationConfigList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []ReplicatorConfiguration `json:"items"`
+	Items           []ReplicationConfig `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&ReplicatorConfiguration{}, &ReplicatorConfigurationList{})
+	SchemeBuilder.Register(&ReplicationConfig{}, &ReplicationConfigList{})
 }

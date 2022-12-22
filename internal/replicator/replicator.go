@@ -16,7 +16,7 @@ type TemplateValues struct {
 	Values map[string]string
 }
 
-func LoadValues(ctx context.Context, c client.Client, rc *naisiov1.ReplicatorConfiguration) (*TemplateValues, error) {
+func LoadValues(ctx context.Context, c client.Client, rc *naisiov1.ReplicationConfig) (*TemplateValues, error) {
 	values := &TemplateValues{
 		Values: map[string]string{},
 	}
@@ -55,7 +55,7 @@ func AddAnnotations(annotations map[string]string, values *TemplateValues) error
 	return nil
 }
 
-func loadSecrets(ctx context.Context, c client.Client, rc *naisiov1.ReplicatorConfiguration, values *TemplateValues) error {
+func loadSecrets(ctx context.Context, c client.Client, rc *naisiov1.ReplicationConfig, values *TemplateValues) error {
 	for _, s := range rc.Spec.Values.Secrets {
 
 		var secret v1.Secret
@@ -70,7 +70,7 @@ func loadSecrets(ctx context.Context, c client.Client, rc *naisiov1.ReplicatorCo
 	return nil
 }
 
-func loadConfigMaps(ctx context.Context, c client.Client, rc *naisiov1.ReplicatorConfiguration, values *TemplateValues) error {
+func loadConfigMaps(ctx context.Context, c client.Client, rc *naisiov1.ReplicationConfig, values *TemplateValues) error {
 	for _, s := range rc.Spec.Values.ConfigMaps {
 
 		var configMap v1.ConfigMap

@@ -34,7 +34,7 @@ import (
 	naisiov1 "nais/replicator/api/v1"
 )
 
-// ReplicatorConfigurationReconciler reconciles a ReplicatorConfiguration object
+// ReplicatorConfigurationReconciler reconciles a ReplicationConfig object
 type ReplicatorConfigurationReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
@@ -49,7 +49,7 @@ func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req c
 	_ = log.FromContext(ctx)
 	fmt.Println("Reconciling")
 
-	rc := &naisiov1.ReplicatorConfiguration{}
+	rc := &naisiov1.ReplicationConfig{}
 	err := r.Get(ctx, req.NamespacedName, rc)
 	if err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -99,7 +99,7 @@ func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req c
 // SetupWithManager sets up the controller with the Manager.
 func (r *ReplicatorConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&naisiov1.ReplicatorConfiguration{}).
+		For(&naisiov1.ReplicationConfig{}).
 		Complete(r)
 }
 

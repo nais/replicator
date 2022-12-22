@@ -1,5 +1,5 @@
 apiVersion: nais.io/v1
-kind: ReplicatorConfiguration
+kind: ReplicationConfig
 metadata:
   name: alerting2
 spec:

@@ -20,9 +20,9 @@ type ReplicatorValidator struct {
 }
 
 func (v *ReplicatorValidator) Handle(ctx context.Context, req admission.Request) admission.Response {
-	rc := &naisiov1.ReplicatorConfiguration{}
+	rc := &naisiov1.ReplicationConfig{}
 
-	println("Validating ReplicatorConfiguration...")
+	println("Validating ReplicationConfig...")
 	err := v.decoder.Decode(req, rc)
 	if err != nil {
 		return admission.Errored(http.StatusBadRequest, err)
@@ -43,7 +43,7 @@ func (v *ReplicatorValidator) InjectDecoder(d *admission.Decoder) error {
 	return nil
 }
 
-func (v *ReplicatorValidator) validateReplicatorConfiguration(rc *naisiov1.ReplicatorConfiguration) error {
+func (v *ReplicatorValidator) validateReplicatorConfiguration(rc *naisiov1.ReplicationConfig) error {
 	if len(rc.Spec.Resources) == 0 {
 		return fmt.Errorf("no resources specified")
 	}
@@ -74,7 +74,7 @@ func (v *ReplicatorValidator) validateReplicatorConfiguration(rc *naisiov1.Repli
 	return nil
 }
 
-func (v *ReplicatorValidator) validateValuesExists(ctx context.Context, rc *naisiov1.ReplicatorConfiguration) error {
+func (v *ReplicatorValidator) validateValuesExists(ctx context.Context, rc *naisiov1.ReplicationConfig) error {
 	for _, s := range rc.Spec.Values.Secrets {
 		var secret v1.Secret
 		if err := v.Client.Get(ctx, client.ObjectKey{Name: s.Name, Namespace: s.Namespace}, &secret); err != nil {

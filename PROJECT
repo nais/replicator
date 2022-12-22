@@ -10,7 +10,7 @@ resources:
   controller: true
   domain: nais.io
   group: nais.io
-  kind: ReplicatorConfiguration
+  kind: ReplicationConfig
   path: nais/replicator/api/v1
   version: v1
   webhooks:

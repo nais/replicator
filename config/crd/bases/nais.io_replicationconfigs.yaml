@@ -5,20 +5,22 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.10.0
   creationTimestamp: null
-  name: replicatorconfigurations.nais.io
+  name: replicationconfigs.nais.io
 spec:
   group: nais.io
   names:
-    kind: ReplicatorConfiguration
-    listKind: ReplicatorConfigurationList
-    plural: replicatorconfigurations
-    singular: replicatorconfiguration
+    kind: ReplicationConfig
+    listKind: ReplicationConfigList
+    plural: replicationconfigs
+    shortNames:
+    - repconf
+    singular: replicationconfig
   scope: Cluster
   versions:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: ReplicatorConfiguration is the Schema for the replicatorconfigurations
+        description: ReplicationConfig is the Schema for the replicatorconfigurations
           API
         properties:
           apiVersion:
@@ -34,8 +36,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: ReplicatorConfigurationSpec defines the desired state of
-              ReplicatorConfiguration
+            description: ReplicationConfigSpec defines the desired state of ReplicationConfig
             properties:
               namespaceSelector:
                 description: A label selector is a label query over a set of resources.
@@ -115,8 +116,7 @@ spec:
                 type: object
             type: object
           status:
-            description: ReplicatorConfigurationStatus defines the observed state
-              of ReplicatorConfiguration
+            description: ReplicationConfigStatus defines the observed state of ReplicationConfig
             type: object
         type: object
     served: true
