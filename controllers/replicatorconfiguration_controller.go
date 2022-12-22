@@ -63,6 +63,15 @@ func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req c
 
 	values, err := replicator.LoadValues(ctx, r.Client, rc)
 
+	ownerRef := []metav1.OwnerReference{
+		{
+			APIVersion: rc.APIVersion,
+			Kind:       rc.Kind,
+			Name:       rc.Name,
+			UID:        rc.UID,
+		},
+	}
+
 	for _, ns := range namespaces.Items {
 		err := replicator.AddAnnotations(ns.ObjectMeta.Annotations, values)
 		if err != nil {
@@ -76,6 +85,7 @@ func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req c
 
 		for _, resource := range resources {
 			resource.SetNamespace(ns.Name)
+			resource.SetOwnerReferences(ownerRef)
 			err = r.createResource(ctx, resource)
 			if err != nil {
 				fmt.Printf("creating resource: %v\n", err)

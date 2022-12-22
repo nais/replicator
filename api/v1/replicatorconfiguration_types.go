@@ -33,6 +33,7 @@ type ReplicatorConfigurationStatus struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:resource:scope=Cluster:shortName=repconf
 
 // ReplicatorConfiguration is the Schema for the replicatorconfigurations API
 type ReplicatorConfiguration struct {

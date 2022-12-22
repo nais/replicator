@@ -13,7 +13,7 @@ spec:
     listKind: ReplicatorConfigurationList
     plural: replicatorconfigurations
     singular: replicatorconfiguration
-  scope: Namespaced
+  scope: Cluster
   versions:
   - name: v1
     schema:
