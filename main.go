@@ -24,6 +24,7 @@ import (
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -105,10 +106,7 @@ func main() {
 	}
 
 	if enableWebhooks {
-		if err = (&naisiov1.ReplicatorConfiguration{}).SetupWebhookWithManager(mgr); err != nil {
-			setupLog.Error(err, "unable to create webhook", "webhook", "ReplicatorConfiguration")
-			os.Exit(1)
-		}
+		mgr.GetWebhookServer().Register("/validate-replicatorconfig", &webhook.Admission{Handler: &controllers.ReplicatorValidator{Client: mgr.GetClient()}})
 	}
 
 	//+kubebuilder:scaffold:builder

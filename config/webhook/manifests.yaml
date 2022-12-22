@@ -11,7 +11,7 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /validate-nais-io-v1-replicatorconfiguration
+      path: /validate-replicatorconfig
   failurePolicy: Fail
   name: replicatorconfiguration.nais.io
   rules:

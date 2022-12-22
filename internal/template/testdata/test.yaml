@@ -4,4 +4,4 @@ type: kubernetes.io/Opaque
 metadata:
   name: slack-webhook
 stringData:
-  apiKey: {{ .Values.tommy }} # loaded from secret
+  apiKey: [[ .Values.tommy ]] # loaded from secret
