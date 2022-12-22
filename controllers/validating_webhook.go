@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	v1 "k8s.io/api/core/v1"
 	naisiov1 "nais/replicator/api/v1"
 	"nais/replicator/internal/template"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -63,6 +64,28 @@ func (v *ReplicatorValidator) validateReplicatorConfiguration(rc *naisiov1.Repli
 		}
 		if resource.GetName() == "" {
 			return fmt.Errorf("name is empty")
+		}
+	}
+
+	if err := v.validateValuesExists(context.Background(), rc); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (v *ReplicatorValidator) validateValuesExists(ctx context.Context, rc *naisiov1.ReplicatorConfiguration) error {
+	for _, s := range rc.Spec.Values.Secrets {
+		var secret v1.Secret
+		if err := v.Client.Get(ctx, client.ObjectKey{Name: s.Name, Namespace: s.Namespace}, &secret); err != nil {
+			return fmt.Errorf("values references non-existing secret '%s': %w", s.Name, err)
+		}
+	}
+
+	for _, c := range rc.Spec.Values.ConfigMaps {
+		var cm v1.ConfigMap
+		if err := v.Client.Get(ctx, client.ObjectKey{Name: c.Name, Namespace: c.Namespace}, &cm); err != nil {
+			return fmt.Errorf("values references non-existing configmap '%s': %w", c.Name, err)
 		}
 	}
 
