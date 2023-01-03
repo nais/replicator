@@ -7,18 +7,13 @@ import (
 // ReplicationConfigSpec defines the desired state of ReplicationConfig
 type ReplicationConfigSpec struct {
 	NamespaceSelector metav1.LabelSelector `json:"namespaceSelector,omitempty"`
-	Values            Values               `json:"values,omitempty"`
+	Values            map[string]string    `json:"values,omitempty"`
+	ValueSecrets      []ValueSecret        `json:"valueSecrets,omitempty"`
 	Resources         []Resource           `json:"resources,omitempty"`
 }
 
-type Values struct {
-	Secrets    []ConfigResource `json:"secrets,omitempty"`
-	ConfigMaps []ConfigResource `json:"configMaps,omitempty"`
-}
-
-type ConfigResource struct {
-	Name      string `json:"name,omitempty"`
-	Namespace string `json:"namespace,omitempty"`
+type ValueSecret struct {
+	Name string `json:"name,omitempty"`
 }
 
 type Resource struct {

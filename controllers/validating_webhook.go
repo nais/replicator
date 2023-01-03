@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 
-	v1 "k8s.io/api/core/v1"
 	naisiov1 "nais/replicator/api/v1"
 	"nais/replicator/internal/template"
+
+	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
@@ -75,17 +77,10 @@ func (v *ReplicatorValidator) validateReplicatorConfiguration(rc *naisiov1.Repli
 }
 
 func (v *ReplicatorValidator) validateValuesExists(ctx context.Context, rc *naisiov1.ReplicationConfig) error {
-	for _, s := range rc.Spec.Values.Secrets {
+	for _, s := range rc.Spec.ValueSecrets {
 		var secret v1.Secret
-		if err := v.Client.Get(ctx, client.ObjectKey{Name: s.Name, Namespace: s.Namespace}, &secret); err != nil {
+		if err := v.Client.Get(ctx, client.ObjectKey{Name: s.Name, Namespace: os.Getenv("NAMESPACE")}, &secret); err != nil {
 			return fmt.Errorf("values references non-existing secret '%s': %w", s.Name, err)
-		}
-	}
-
-	for _, c := range rc.Spec.Values.ConfigMaps {
-		var cm v1.ConfigMap
-		if err := v.Client.Get(ctx, client.ObjectKey{Name: c.Name, Namespace: c.Namespace}, &cm); err != nil {
-			return fmt.Errorf("values references non-existing configmap '%s': %w", c.Name, err)
 		}
 	}
 

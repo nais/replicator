@@ -70,8 +70,12 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
-	syncDuration := 10 * time.Second
+	if os.Getenv("NAMESPACE") == "" {
+		setupLog.Error(nil, "NAMESPACE environment variable must be set")
+		os.Exit(1)
+	}
 
+	syncDuration := 10 * time.Second
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     metricsAddr,

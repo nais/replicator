@@ -20,9 +20,10 @@ import (
 	"context"
 	"fmt"
 
+	"nais/replicator/internal/replicator"
+
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"nais/replicator/internal/replicator"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -61,7 +62,12 @@ func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req c
 	}
 	fmt.Printf("Found %d namespaces matching the selector\n", len(namespaces.Items))
 
-	values, err := replicator.LoadValues(ctx, r.Client, rc)
+	secrets, err := replicator.LoadSecrets(ctx, r.Client, rc)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	values := merge(rc.Spec.Values, secrets)
 
 	ownerRef := []metav1.OwnerReference{
 		{
@@ -73,12 +79,9 @@ func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req c
 	}
 
 	for _, ns := range namespaces.Items {
-		err := replicator.AddAnnotations(ns.ObjectMeta.Annotations, values)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
+		nsv := replicator.ExtractValues(ns.Annotations)
 
-		resources, err := replicator.ParseResources(values, rc.Spec.Resources)
+		resources, err := replicator.ParseResources(&replicator.TemplateValues{Values: merge(values, nsv)}, rc.Spec.Resources)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -94,6 +97,16 @@ func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req c
 	}
 
 	return ctrl.Result{}, nil
+}
+
+func merge(a, b map[string]string) map[string]string {
+	if a == nil {
+		return b
+	}
+	for k, v := range b {
+		a[k] = v
+	}
+	return a
 }
 
 // SetupWithManager sets up the controller with the Manager.

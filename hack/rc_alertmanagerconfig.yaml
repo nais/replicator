@@ -6,10 +6,10 @@ spec:
   namespaceSelector:
     matchLabels:
       team-namespace: "true"
+  valueSecrets:
+    - name: secret-to-load
   values:
-    secrets:
-      - name: secret-to-load
-        namespace: replicator-system
+    key: value
   resources:
     - template: | 
         apiVersion: v1
@@ -36,7 +36,7 @@ spec:
                   text: '{{ template "slack.text" . }}'
                   title: '{{ template "slack.title" . }}'
           route:
-            receiver: yolo
+            receiver: [[ .Values.key ]]]
             groupBy:
               - alertname
             groupInterval: 5m

@@ -93,26 +93,16 @@ spec:
                       type: string
                   type: object
                 type: array
+              valueSecrets:
+                items:
+                  properties:
+                    name:
+                      type: string
+                  type: object
+                type: array
               values:
-                properties:
-                  configMaps:
-                    items:
-                      properties:
-                        name:
-                          type: string
-                        namespace:
-                          type: string
-                      type: object
-                    type: array
-                  secrets:
-                    items:
-                      properties:
-                        name:
-                          type: string
-                        namespace:
-                          type: string
-                      type: object
-                    type: array
+                additionalProperties:
+                  type: string
                 type: object
             type: object
           status:

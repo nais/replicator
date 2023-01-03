@@ -2,11 +2,10 @@ apiVersion: v1
 kind: Namespace
 metadata:
   annotations:
-    replicator.nais.io/ns_value: "yolo_ns"
+    replicator.nais.io/ns_value: "foo"
   labels:
-    kubernetes.io/metadata.name: yolo
     team-namespace: "true"
-  name: yolo
+  name: replicator-ns
 ---
 apiVersion: v1
 kind: Namespace
@@ -21,12 +20,3 @@ metadata:
 type: kubernetes.io/Opaque
 stringData:
   s1: s1fromsecret
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: configmap-to-load
-  namespace: replicator-system
-data:
-  cm1: value1
-  cm2: value2
