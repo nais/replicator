@@ -22,8 +22,7 @@ type Resource struct {
 
 // ReplicationConfigStatus defines the observed state of ReplicationConfig
 type ReplicationConfigStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	LastSynchronized metav1.Time `json:"lastSynchronized,omitempty"`
 }
 
 //+kubebuilder:object:root=true

@@ -17,7 +17,7 @@ type TemplateValues struct {
 	Values map[string]string
 }
 
-func ParseResources(values *TemplateValues, resources []naisiov1.Resource) ([]*unstructured.Unstructured, error) {
+func RenderResources(values *TemplateValues, resources []naisiov1.Resource) ([]*unstructured.Unstructured, error) {
 	var objects []*unstructured.Unstructured
 	for _, r := range resources {
 		resource, err := template.RenderTemplate(values, r.Template)

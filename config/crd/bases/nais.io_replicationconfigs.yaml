@@ -107,6 +107,10 @@ spec:
             type: object
           status:
             description: ReplicationConfigStatus defines the observed state of ReplicationConfig
+            properties:
+              lastSynchronized:
+                format: date-time
+                type: string
             type: object
         type: object
     served: true

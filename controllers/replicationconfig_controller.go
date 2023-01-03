@@ -24,6 +24,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/client-go/tools/record"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -38,7 +39,8 @@ import (
 // ReplicatorConfigurationReconciler reconciles a ReplicationConfig object
 type ReplicatorConfigurationReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme   *runtime.Scheme
+	Recorder record.EventRecorder
 }
 
 //+kubebuilder:rbac:groups=nais.io,resources=replicatorconfigurations,verbs=get;list;watch;create;update;patch;delete
@@ -81,9 +83,10 @@ func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req c
 	for _, ns := range namespaces.Items {
 		nsv := replicator.ExtractValues(ns.Annotations)
 
-		resources, err := replicator.ParseResources(&replicator.TemplateValues{Values: merge(values, nsv)}, rc.Spec.Resources)
+		resources, err := replicator.RenderResources(&replicator.TemplateValues{Values: merge(values, nsv)}, rc.Spec.Resources)
 		if err != nil {
-			return ctrl.Result{}, err
+			r.Recorder.Eventf(rc, "Warning", "RenderResources", "Unable to render resources for namespace %q: %v", ns.Name, err)
+			continue
 		}
 
 		for _, resource := range resources {
@@ -91,10 +94,14 @@ func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req c
 			resource.SetOwnerReferences(ownerRef)
 			err = r.createResource(ctx, resource)
 			if err != nil {
-				fmt.Printf("creating resource: %v\n", err)
+				r.Recorder.Eventf(rc, "Warning", "CreateResource", "Unable to create resource %v/%v for namespace %q: %v", resource.GetKind(), resource.GetName(), ns.Name, err)
+				continue
 			}
 		}
 	}
+
+	rc.Status.LastSynchronized = metav1.Now()
+	r.Status().Update(ctx, rc)
 
 	return ctrl.Result{}, nil
 }
