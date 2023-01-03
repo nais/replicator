@@ -101,7 +101,9 @@ func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req c
 	}
 
 	rc.Status.LastSynchronized = metav1.Now()
-	r.Status().Update(ctx, rc)
+	if err := r.Status().Update(ctx, rc); err != nil {
+		return ctrl.Result{}, err
+	}
 
 	return ctrl.Result{}, nil
 }

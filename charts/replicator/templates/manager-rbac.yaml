@@ -1,0 +1,62 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "replicator.fullname" . }}-manager-role
+  labels:
+  {{- include "replicator.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - '*'
+  resources:
+  - '*'
+  verbs:
+  - create
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - nais.io
+  resources:
+  - replicatorconfigurations
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - nais.io
+  resources:
+  - replicatorconfigurations/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - nais.io
+  resources:
+  - replicatorconfigurations/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "replicator.fullname" . }}-manager-rolebinding
+  labels:
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: replicator
+    app.kubernetes.io/part-of: replicator
+  {{- include "replicator.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: '{{ include "replicator.fullname" . }}-manager-role'
+subjects:
+- kind: ServiceAccount
+  name: '{{ include "replicator.fullname" . }}-controller-manager'
+  namespace: '{{ .Release.Namespace }}'
