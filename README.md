@@ -20,7 +20,7 @@ metadata:
 spec:
   namespaceSelector:
     matchLabels:
-      team-namespace: true
+      team-namespace: "true"
   values: 
     project: abc-123
   valueSecrets:
