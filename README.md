@@ -31,8 +31,7 @@ spec:
           apiVersion: v1
           type: kubernetes.io/Opaque
           name: replicated-secret
-          data:
-            stringData: |
+          stringData: |
               apiKey: [[ .Values.apikey ]] # loaded from secret 
     - template: |
           apiVersion: core.cnrm.cloud.google.com/v1beta1
