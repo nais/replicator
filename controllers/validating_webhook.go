@@ -79,7 +79,7 @@ func (v *ReplicatorValidator) validateReplicatorConfiguration(rc *naisiov1.Repli
 func (v *ReplicatorValidator) validateValuesExists(ctx context.Context, rc *naisiov1.ReplicationConfig) error {
 	for _, s := range rc.Spec.ValueSecrets {
 		var secret v1.Secret
-		if err := v.Client.Get(ctx, client.ObjectKey{Name: s.Name, Namespace: os.Getenv("NAMESPACE")}, &secret); err != nil {
+		if err := v.Client.Get(ctx, client.ObjectKey{Name: s.Name, Namespace: os.Getenv("POD_NAMESPACE")}, &secret); err != nil {
 			return fmt.Errorf("values references non-existing secret '%s': %w", s.Name, err)
 		}
 	}

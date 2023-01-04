@@ -46,7 +46,7 @@ func LoadSecrets(ctx context.Context, c client.Client, rc *naisiov1.ReplicationC
 	for _, s := range rc.Spec.ValueSecrets {
 
 		var secret v1.Secret
-		if err := c.Get(ctx, client.ObjectKey{Name: s.Name, Namespace: os.Getenv("NAMESPACE")}, &secret); err != nil {
+		if err := c.Get(ctx, client.ObjectKey{Name: s.Name, Namespace: os.Getenv("POD_NAMESPACE")}, &secret); err != nil {
 			return nil, err
 		}
 

@@ -70,8 +70,8 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
-	if os.Getenv("NAMESPACE") == "" {
-		setupLog.Error(nil, "NAMESPACE environment variable must be set")
+	if os.Getenv("POD_NAMESPACE") == "" {
+		setupLog.Error(nil, "POD_NAMESPACE environment variable must be set")
 		os.Exit(1)
 	}
 
