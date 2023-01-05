@@ -14,7 +14,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
-//+kubebuilder:webhook:path=/validate-replicatorconfig,mutating=false,failurePolicy=fail,sideEffects=None,groups=nais.io,resources=replicatorconfigurations,verbs=create;update,versions=v1,name=replicatorconfiguration.nais.io,admissionReviewVersions=v1
+//+kubebuilder:webhook:path=/validate-replicationconfig,mutating=false,failurePolicy=fail,sideEffects=None,groups=nais.io,resources=replicationconfigurations,verbs=create;update,versions=v1,name=replicationconfiguration.nais.io,admissionReviewVersions=v1
 
 type ReplicatorValidator struct {
 	Client  client.Client
@@ -29,7 +29,7 @@ func (v *ReplicatorValidator) Handle(ctx context.Context, req admission.Request)
 	if err != nil {
 		return admission.Errored(http.StatusBadRequest, err)
 	}
-	if err := v.validateReplicatorConfiguration(rc); err != nil {
+	if err := v.validateReplicationConfig(rc); err != nil {
 		return admission.Denied(err.Error())
 	}
 
@@ -45,7 +45,7 @@ func (v *ReplicatorValidator) InjectDecoder(d *admission.Decoder) error {
 	return nil
 }
 
-func (v *ReplicatorValidator) validateReplicatorConfiguration(rc *naisiov1.ReplicationConfig) error {
+func (v *ReplicatorValidator) validateReplicationConfig(rc *naisiov1.ReplicationConfig) error {
 	if len(rc.Spec.Resources) == 0 {
 		return fmt.Errorf("no resources specified")
 	}

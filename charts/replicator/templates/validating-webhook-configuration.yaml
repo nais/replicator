@@ -13,9 +13,9 @@ webhooks:
     service:
       name: '{{ include "replicator.fullname" . }}-webhook-service'
       namespace: '{{ .Release.Namespace }}'
-      path: /validate-replicatorconfig
+      path: /validate-replicationconfig
   failurePolicy: Fail
-  name: replicatorconfiguration.nais.io
+  name: replicationconfiguration.nais.io
   rules:
   - apiGroups:
     - nais.io
@@ -25,5 +25,5 @@ webhooks:
     - CREATE
     - UPDATE
     resources:
-    - replicatorconfigurations
+    - replicationconfigurations
   sideEffects: None

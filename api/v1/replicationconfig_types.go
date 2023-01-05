@@ -29,7 +29,7 @@ type ReplicationConfigStatus struct {
 //+kubebuilder:subresource:status
 //+kubebuilder:resource:scope=Cluster,shortName=repconf
 
-// ReplicationConfig is the Schema for the replicatorconfigurations API
+// ReplicationConfig is the Schema for the replicationconfigurations API
 type ReplicationConfig struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

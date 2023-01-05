@@ -35,19 +35,19 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// ReplicatorConfigurationReconciler reconciles a ReplicationConfig object
-type ReplicatorConfigurationReconciler struct {
+// ReplicationConfigReconciler reconciles a ReplicationConfig object
+type ReplicationConfigReconciler struct {
 	client.Client
 	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
 }
 
-//+kubebuilder:rbac:groups=nais.io,resources=replicatorconfigurations,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=nais.io,resources=replicatorconfigurations/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=nais.io,resources=replicatorconfigurations/finalizers,verbs=update
+//+kubebuilder:rbac:groups=nais.io,resources=replicationconfigurations,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=nais.io,resources=replicationconfigurations/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=nais.io,resources=replicationconfigurations/finalizers,verbs=update
 //+kubebuilder:rbac:groups="*",resources=*,verbs=create;update;patch;get;list;watch
 
-func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	rc := &naisiov1.ReplicationConfig{}
 	err := r.Get(ctx, req.NamespacedName, rc)
 	if err != nil {
@@ -118,13 +118,13 @@ func merge(a, b map[string]string) map[string]string {
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *ReplicatorConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *ReplicationConfigReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&naisiov1.ReplicationConfig{}).
 		Complete(r)
 }
 
-func (r *ReplicatorConfigurationReconciler) listNamespaces(ctx context.Context, ls *metav1.LabelSelector) (v1.NamespaceList, error) {
+func (r *ReplicationConfigReconciler) listNamespaces(ctx context.Context, ls *metav1.LabelSelector) (v1.NamespaceList, error) {
 	selector, err := metav1.LabelSelectorAsSelector(ls)
 	if err != nil {
 		return v1.NamespaceList{}, err
@@ -138,7 +138,7 @@ func (r *ReplicatorConfigurationReconciler) listNamespaces(ctx context.Context, 
 	return namespaces, nil
 }
 
-func (r ReplicatorConfigurationReconciler) createResource(ctx context.Context, resource *unstructured.Unstructured) error {
+func (r ReplicationConfigReconciler) createResource(ctx context.Context, resource *unstructured.Unstructured) error {
 	err := r.Create(ctx, resource)
 	if client.IgnoreAlreadyExists(err) != nil {
 		return fmt.Errorf("creating resource: %w", err)

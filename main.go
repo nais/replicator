@@ -18,9 +18,10 @@ package main
 
 import (
 	"flag"
-	"nais/replicator/internal/logger"
 	"os"
 	"time"
+
+	"nais/replicator/internal/logger"
 
 	log "github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -100,7 +101,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.ReplicatorConfigurationReconciler{
+	if err = (&controllers.ReplicationConfigReconciler{
 		Client:   mgr.GetClient(),
 		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("replicator"),
@@ -110,7 +111,7 @@ func main() {
 	}
 
 	if enableWebhooks {
-		mgr.GetWebhookServer().Register("/validate-replicatorconfig", &webhook.Admission{Handler: &controllers.ReplicatorValidator{Client: mgr.GetClient()}})
+		mgr.GetWebhookServer().Register("/validate-replicationconfig", &webhook.Admission{Handler: &controllers.ReplicatorValidator{Client: mgr.GetClient()}})
 	}
 
 	//+kubebuilder:scaffold:builder

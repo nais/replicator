@@ -19,7 +19,7 @@ rules:
 - apiGroups:
   - nais.io
   resources:
-  - replicatorconfigurations
+  - replicationconfigurations
   verbs:
   - create
   - delete
@@ -31,13 +31,13 @@ rules:
 - apiGroups:
   - nais.io
   resources:
-  - replicatorconfigurations/finalizers
+  - replicationconfigurations/finalizers
   verbs:
   - update
 - apiGroups:
   - nais.io
   resources:
-  - replicatorconfigurations/status
+  - replicationconfigurations/status
   verbs:
   - get
   - patch

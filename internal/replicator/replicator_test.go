@@ -18,7 +18,7 @@ func TestResources(t *testing.T) {
 		},
 	}
 
-	b, err := os.ReadFile("testdata/replicatorconfig.yaml")
+	b, err := os.ReadFile("testdata/replicationconfig.yaml")
 	assert.NoError(t, err)
 	var r naisiov1.ReplicationConfig
 	err = yaml.Unmarshal(b, &r)
