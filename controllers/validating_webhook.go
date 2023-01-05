@@ -14,7 +14,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
-//+kubebuilder:webhook:path=/validate-replicationconfig,mutating=false,failurePolicy=fail,sideEffects=None,groups=nais.io,resources=replicationconfigurations,verbs=create;update,versions=v1,name=replicationconfiguration.nais.io,admissionReviewVersions=v1
+//+kubebuilder:webhook:path=/validate-replicationconfig,mutating=false,failurePolicy=fail,sideEffects=None,groups=nais.io,resources=replicationconfigs,verbs=create;update,versions=v1,name=replicationconfig.nais.io,admissionReviewVersions=v1
 
 type ReplicatorValidator struct {
 	Client  client.Client

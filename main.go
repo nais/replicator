@@ -111,6 +111,7 @@ func main() {
 	}
 
 	if enableWebhooks {
+		log.Infof("webhooks enabled, registering webhook server at /validate-replicationconfig")
 		mgr.GetWebhookServer().Register("/validate-replicationconfig", &webhook.Admission{Handler: &controllers.ReplicatorValidator{Client: mgr.GetClient()}})
 	}
 

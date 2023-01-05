@@ -13,7 +13,7 @@ webhooks:
       namespace: system
       path: /validate-replicationconfig
   failurePolicy: Fail
-  name: replicationconfiguration.nais.io
+  name: replicationconfig.nais.io
   rules:
   - apiGroups:
     - nais.io
@@ -23,5 +23,5 @@ webhooks:
     - CREATE
     - UPDATE
     resources:
-    - replicationconfigurations
+    - replicationconfigs
   sideEffects: None
