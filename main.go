@@ -18,21 +18,23 @@ package main
 
 import (
 	"flag"
+	"nais/replicator/internal/logger"
+	"os"
+	"time"
+
 	log "github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	"nais/replicator/internal/logger"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
-	"time"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	naisiov1 "nais/replicator/api/v1"
 	"nais/replicator/controllers"
+
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	//+kubebuilder:scaffold:imports
@@ -64,7 +66,7 @@ func main() {
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.BoolVar(&enableWebhooks, "enable-webhooks", true, "Enable webhooks")
-	flag.BoolVar(&debug, "debug", false, "Enable debug logging")
+	flag.BoolVar(&debug, "debug", os.Getenv("DEBUG") != "", "Enable debug logging")
 
 	opts := zap.Options{
 		Development: true,

@@ -44,6 +44,8 @@ spec:
               fieldPath: metadata.namespace
         - name: KUBERNETES_CLUSTER_DOMAIN
           value: cluster.local
+        - name DEBUG
+          value: {{ .Values.debug }}
         image: {{ .Values.image.repository }}:{{ .Chart.Version }}
         imagePullPolicy: IfNotPresent
         livenessProbe:

@@ -9,3 +9,4 @@ resources:
     memory: 64Mi
 replicas: 1
 apiserverIP: "" # mapping value from Fasit
+debug: false
