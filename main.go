@@ -24,6 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	"nais/replicator/internal/logger"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -31,7 +32,6 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	naisiov1 "nais/replicator/api/v1"
 	"nais/replicator/controllers"
-	"nais/replicator/internal/logger"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	//+kubebuilder:scaffold:imports
@@ -45,6 +45,7 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	utilruntime.Must(naisiov1.AddToScheme(scheme))
+	logger.SetupLogrus()
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -54,15 +55,20 @@ func main() {
 	var enableLeaderElection bool
 	var probeAddr string
 	var enableWebhooks bool
+	var debug bool
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.BoolVar(&enableWebhooks, "enable-webhooks", true, "Enable webhooks")
+	flag.BoolVar(&debug, "debug", false, "Enable debug logging")
 
 	flag.Parse()
-	logger.SetupLogrus(log.DebugLevel)
+
+	if debug {
+		log.SetLevel(log.DebugLevel)
+	}
 
 	if os.Getenv("POD_NAMESPACE") == "" {
 		log.Error("POD_NAMESPACE environment variable must be set")

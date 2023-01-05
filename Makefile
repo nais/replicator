@@ -69,7 +69,7 @@ build: manifests generate fmt vet ## Build manager binary.
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
-	POD_NAMESPACE=replicator-system go run -- ./main.go -metrics-bind-address=127.0.0.1:8080 -health-probe-bind-address=127.0.0.1:8081 -enable-webhooks=false
+	POD_NAMESPACE=replicator-system go run -- ./main.go -metrics-bind-address=127.0.0.1:8080 -health-probe-bind-address=127.0.0.1:8081 -enable-webhooks=false -debug
 
 # If you wish built the manager image targeting other platforms you can use the --platform flag.
 # (i.e. docker build --platform linux/arm64 ). However, you must enable docker buildKit for it.

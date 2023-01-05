@@ -6,10 +6,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func SetupLogrus(level log.Level) {
+func SetupLogrus() {
 	formatter := &log.JSONFormatter{
 		TimestampFormat: time.RFC3339Nano,
 	}
 	log.SetFormatter(formatter)
-	log.SetLevel(level)
+	log.SetLevel(log.InfoLevel)
 }
