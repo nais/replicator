@@ -1,11 +1,12 @@
 name: Build and deploy
 on:
   push:
-    paths-ignore:
-      - "charts/**"
+    branches:
+      - main
 
 env:
   REGISTRY: europe-north1-docker.pkg.dev/nais-io/nais/images
+  IMAGE_NAME: replicator
 jobs:
   tests:
     runs-on: ubuntu-latest
@@ -31,6 +32,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Create new version
+        run: echo "NEW_VERSION=$(date '+%Y-%-m-%-d')-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - id: "auth"
         name: "Authenticate to Google Cloud"
         uses: "google-github-actions/auth@v1.0.0"
@@ -47,20 +50,6 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: "oauth2accesstoken"
           password: "${{ steps.auth.outputs.access_token }}"
-      - name: Docker meta
-        id: metadata
-        uses: docker/metadata-action@v4
-        with:
-          images: ${{ env.REGISTRY }}/replicator
-          # Docker tags based on the following events/attributes
-          tags: |
-            type=schedule
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern=v{{version}}
-            type=semver,pattern=v{{major}}.{{minor}}
-            type=semver,pattern=v{{major}}
-            type=sha
       - name: Build and push
         if: github.ref == 'refs/heads/main'
         uses: docker/build-push-action@v3
@@ -68,7 +57,6 @@ jobs:
           context: .
           file: Dockerfile
           push: true
-          tags: ${{ steps.metadata.outputs.tags }}
-          labels: ${{ steps.metadata.outputs.labels }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.NEW_VERSION }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
