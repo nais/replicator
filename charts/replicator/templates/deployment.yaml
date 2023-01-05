@@ -44,7 +44,7 @@ spec:
               fieldPath: metadata.namespace
         - name: KUBERNETES_CLUSTER_DOMAIN
           value: cluster.local
-        image: {{ .Values.image.repository }}:{{ .Chart.version }}
+        image: {{ .Values.image.repository }}:{{ .Chart.Version }}
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
