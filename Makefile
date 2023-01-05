@@ -61,7 +61,7 @@ test: manifests generate fmt vet envtest ## Run tests.
 ##@ Build
 .PHONY: helm
 helm: manifests kustomize helmify
-	$(KUSTOMIZE) build config/default | $(LOCALBIN)/helmify charts/replicator
+	$(KUSTOMIZE) build config/default | $(LOCALBIN)/helmify helmify
 
 .PHONY: build
 build: manifests generate fmt vet ## Build manager binary.

@@ -7,8 +7,7 @@ metadata:
 spec:
   dnsNames:
   - '{{ include "replicator.fullname" . }}-webhook-service.{{ .Release.Namespace }}.svc'
-  - '{{ include "replicator.fullname" . }}-webhook-service.{{ .Release.Namespace }}.svc.{{
-    .Values.kubernetesClusterDomain }}'
+  - '{{ include "replicator.fullname" . }}-webhook-service.{{ .Release.Namespace }}.svc.cluster.local'
   issuerRef:
     kind: Issuer
     name: '{{ include "replicator.fullname" . }}-selfsigned-issuer'

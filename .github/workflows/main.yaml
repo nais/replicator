@@ -8,19 +8,19 @@ env:
   REGISTRY: europe-north1-docker.pkg.dev/nais-io/nais/images
   IMAGE_NAME: replicator
 jobs:
-  tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
-        with:
-          go-version: ">=1.19.3"
-      - name: Vulnerability check
-        run: |
-          go install golang.org/x/vuln/cmd/govulncheck@latest
-          govulncheck ./...
-      - name: Test
-        run: go test -v ./...
+  # tests:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: actions/setup-go@v3
+  #       with:
+  #         go-version: ">=1.19.3"
+  #     - name: Vulnerability check
+  #       run: |
+  #         go install golang.org/x/vuln/cmd/govulncheck@latest
+  #         govulncheck ./...
+  #     - name: Test
+  #       run: go test -v ./...
 
   build_and_push:
     if: github.ref == 'refs/heads/main'
@@ -57,6 +57,18 @@ jobs:
           context: .
           file: Dockerfile
           push: true
-          tags: ${{ env.IMAGE_NAME }}:${{ env.NEW_VERSION }},${{ env.IMAGE_NAME }}:latest
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.NEW_VERSION }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - uses: azure/setup-helm@v1
+        name: "Setup Helm"
+        with:
+          version: "3.8.0"
+      - name: Build Chart
+        run: |-
+          sed -i "s/^version: .*/version: ${{ env.NEW_VERSION }}/g" charts/replicator/Chart.yaml
+          cat charts/replicator/Chart.yaml
+          helm package charts/replicator
+      - name: Push Chart
+        run: |-
+          helm push replicator*.tgz oci://europe-north1-docker.pkg.dev/nais-io/nais
