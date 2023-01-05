@@ -19,26 +19,26 @@ package main
 import (
 	"flag"
 	"os"
-	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
-	// to ensure that exec-entrypoint and run can make use of them.
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
-	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
+	log "github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/healthz"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
+	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
+	// to ensure that exec-entrypoint and run can make use of them.
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	naisiov1 "nais/replicator/api/v1"
 	"nais/replicator/controllers"
+	"nais/replicator/internal/logger"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	//+kubebuilder:scaffold:imports
 )
 
 var (
-	scheme   = runtime.NewScheme()
-	setupLog = ctrl.Log.WithName("setup")
+	scheme = runtime.NewScheme()
 )
 
 func init() {
@@ -49,6 +49,7 @@ func init() {
 }
 
 func main() {
+
 	var metricsAddr string
 	var enableLeaderElection bool
 	var probeAddr string
@@ -60,16 +61,11 @@ func main() {
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.BoolVar(&enableWebhooks, "enable-webhooks", true, "Enable webhooks")
 
-	opts := zap.Options{
-		Development: true,
-	}
-	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
-
-	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+	logger.SetupLogrus(log.DebugLevel)
 
 	if os.Getenv("POD_NAMESPACE") == "" {
-		setupLog.Error(nil, "POD_NAMESPACE environment variable must be set")
+		log.Error("POD_NAMESPACE environment variable must be set")
 		os.Exit(1)
 	}
 
@@ -82,7 +78,7 @@ func main() {
 		LeaderElectionID:       "9046ff70.nais.io",
 	})
 	if err != nil {
-		setupLog.Error(err, "unable to start manager")
+		log.Errorf("unable to start manager %v", err)
 		os.Exit(1)
 	}
 
@@ -91,7 +87,7 @@ func main() {
 		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("replicator"),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "ReplicationConfig")
+		log.Errorf("unable to create controller %v", err)
 		os.Exit(1)
 	}
 
@@ -101,17 +97,17 @@ func main() {
 
 	//+kubebuilder:scaffold:builder
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
-		setupLog.Error(err, "unable to set up health check")
+		log.Errorf("unable to set up health check %v", err)
 		os.Exit(1)
 	}
 	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
-		setupLog.Error(err, "unable to set up ready check")
+		log.Errorf("unable to set up ready check %v", err)
 		os.Exit(1)
 	}
 
-	setupLog.Info("starting manager")
+	log.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
-		setupLog.Error(err, "problem running manager")
+		log.Errorf("problem running manager %v", err)
 		os.Exit(1)
 	}
 }

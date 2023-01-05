@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 
+	log "github.com/sirupsen/logrus"
 	"nais/replicator/internal/replicator"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -29,11 +30,9 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	naisiov1 "nais/replicator/api/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	naisiov1 "nais/replicator/api/v1"
 )
 
 // ReplicatorConfigurationReconciler reconciles a ReplicationConfig object
@@ -49,9 +48,6 @@ type ReplicatorConfigurationReconciler struct {
 //+kubebuilder:rbac:groups="*",resources=*,verbs=create;update;patch;get;list;watch
 
 func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
-	fmt.Println("Reconciling")
-
 	rc := &naisiov1.ReplicationConfig{}
 	err := r.Get(ctx, req.NamespacedName, rc)
 	if err != nil {
@@ -62,7 +58,8 @@ func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req c
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	fmt.Printf("Found %d namespaces matching the selector\n", len(namespaces.Items))
+
+	log.Debugf("reconciling %q to %d namespaces\n", rc.Name, len(namespaces.Items))
 
 	secrets, err := replicator.LoadSecrets(ctx, r.Client, rc)
 	if err != nil {
@@ -88,6 +85,7 @@ func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req c
 			r.Recorder.Eventf(rc, "Warning", "RenderResources", "Unable to render resources for namespace %q: %v", ns.Name, err)
 			continue
 		}
+		log.Debugf("rendered %d resources for namespace %q", len(resources), ns.Name)
 
 		for _, resource := range resources {
 			resource.SetNamespace(ns.Name)
@@ -97,6 +95,7 @@ func (r *ReplicatorConfigurationReconciler) Reconcile(ctx context.Context, req c
 				r.Recorder.Eventf(rc, "Warning", "CreateResource", "Unable to create resource %v/%v for namespace %q: %v", resource.GetKind(), resource.GetName(), ns.Name, err)
 				continue
 			}
+			log.Debugf("created resource %v/%v for namespace %q", resource.GetKind(), resource.GetName(), ns.Name)
 		}
 	}
 
