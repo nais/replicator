@@ -48,7 +48,7 @@ type ReplicationConfigList struct {
 
 type TemplateValues struct {
 	Values    map[string]string `json:"values,omitempty"`
-	Secrets   []Secret          `json:"Secrets,omitempty"`
+	Secrets   []Secret          `json:"secrets,omitempty"`
 	Namespace Namespace         `json:"namespace,omitempty"`
 }
 

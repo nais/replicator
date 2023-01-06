@@ -5,6 +5,7 @@ metadata:
     replicator.nais.io/ns_value: "foo"
   labels:
     team-namespace: "true"
+    team: replicator-ns
   name: replicator-ns
 ---
 apiVersion: v1
@@ -15,7 +16,7 @@ metadata:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: secret-to-load
+  name: secret-containing-value
   namespace: replicator-system
 type: kubernetes.io/Opaque
 stringData:

@@ -94,13 +94,6 @@ spec:
                 type: array
               templateValues:
                 properties:
-                  Secrets:
-                    items:
-                      properties:
-                        name:
-                          type: string
-                      type: object
-                    type: array
                   namespace:
                     properties:
                       annotations:
@@ -112,6 +105,13 @@ spec:
                           type: string
                         type: array
                     type: object
+                  secrets:
+                    items:
+                      properties:
+                        name:
+                          type: string
+                      type: object
+                    type: array
                   values:
                     additionalProperties:
                       type: string
