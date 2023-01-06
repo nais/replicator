@@ -1,5 +1,5 @@
 image:
-  repository: europe-north1-docker.pkg.dev/nais-io/nais/images
+  repository: europe-north1-docker.pkg.dev/nais-io/nais/images/replicator
   pullPolicy: IfNotPresent
 resources:
   limits:
