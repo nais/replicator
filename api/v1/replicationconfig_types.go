@@ -7,12 +7,11 @@ import (
 // ReplicationConfigSpec defines the desired state of ReplicationConfig
 type ReplicationConfigSpec struct {
 	NamespaceSelector metav1.LabelSelector `json:"namespaceSelector,omitempty"`
-	Values            map[string]string    `json:"values,omitempty"`
-	ValueSecrets      []ValueSecret        `json:"valueSecrets,omitempty"`
+	TemplateValues    TemplateValues       `json:"templateValues,omitempty"`
 	Resources         []Resource           `json:"resources,omitempty"`
 }
 
-type ValueSecret struct {
+type Secret struct {
 	Name string `json:"name,omitempty"`
 }
 
@@ -45,6 +44,17 @@ type ReplicationConfigList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []ReplicationConfig `json:"items"`
+}
+
+type TemplateValues struct {
+	Values    map[string]string `json:"values,omitempty"`
+	Secrets   []Secret          `json:"Secrets,omitempty"`
+	Namespace Namespace         `json:"namespace,omitempty"`
+}
+
+type Namespace struct {
+	Labels      []string `json:"labels,omitempty"`
+	Annotations []string `json:"annotations,omitempty"`
 }
 
 func init() {

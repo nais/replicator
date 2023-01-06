@@ -92,16 +92,30 @@ spec:
                       type: string
                   type: object
                 type: array
-              valueSecrets:
-                items:
-                  properties:
-                    name:
+              templateValues:
+                properties:
+                  Secrets:
+                    items:
+                      properties:
+                        name:
+                          type: string
+                      type: object
+                    type: array
+                  namespace:
+                    properties:
+                      annotations:
+                        items:
+                          type: string
+                        type: array
+                      labels:
+                        items:
+                          type: string
+                        type: array
+                    type: object
+                  values:
+                    additionalProperties:
                       type: string
-                  type: object
-                type: array
-              values:
-                additionalProperties:
-                  type: string
+                    type: object
                 type: object
             type: object
           status:

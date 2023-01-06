@@ -22,9 +22,9 @@ spec:
     #matchLabels:
     #  team-namespace: "true"
     matchExpressions:
-      key: team
-      operator: Exists
-  templatingValues:
+      - key: team
+        operator: Exists
+  templateValues:
     values: 
       project: abc-123
     secrets:
@@ -40,9 +40,10 @@ spec:
           kind: Secret
           apiVersion: v1
           type: kubernetes.io/Opaque
-          name: replicated-secret
-          stringData: |
-              apiKey: [[ .Values.apikey ]] # loaded from secret 
+          metadata:
+            name: replicator-secret
+          stringData:
+            apiKey: [[ .Values.apikey ]] # loaded from secret 
     - template: |
           apiVersion: core.cnrm.cloud.google.com/v1beta1
           kind: ConfigConnectorContext

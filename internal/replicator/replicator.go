@@ -29,7 +29,33 @@ func RenderResources(values *TemplateValues, resources []naisiov1.Resource) ([]*
 	return objects, nil
 }
 
-func ExtractValues(annotations map[string]string) map[string]string {
+func ExtractValues(namespace v1.Namespace, namespaceValues naisiov1.Namespace) map[string]string {
+	v := extractDefaultAnnotations(namespace.Annotations)
+	v = Merge(v, filter(namespace.Labels, namespaceValues.Labels))
+	return Merge(v, filter(namespace.Annotations, namespaceValues.Annotations))
+}
+
+func Merge(a, b map[string]string) map[string]string {
+	if a == nil {
+		return b
+	}
+	for k, v := range b {
+		a[k] = v
+	}
+	return a
+}
+
+func filter(m map[string]string, keys []string) map[string]string {
+	values := make(map[string]string)
+	for _, k := range keys {
+		if v, ok := m[k]; ok {
+			values[k] = v
+		}
+	}
+	return values
+}
+
+func extractDefaultAnnotations(annotations map[string]string) map[string]string {
 	values := make(map[string]string)
 	for key, value := range annotations {
 		kp := strings.Split(key, "replicator.nais.io/")
@@ -43,7 +69,7 @@ func ExtractValues(annotations map[string]string) map[string]string {
 
 func LoadSecrets(ctx context.Context, c client.Client, rc *naisiov1.ReplicationConfig) (map[string]string, error) {
 	values := make(map[string]string)
-	for _, s := range rc.Spec.ValueSecrets {
+	for _, s := range rc.Spec.TemplateValues.Secrets {
 
 		var secret v1.Secret
 		if err := c.Get(ctx, client.ObjectKey{Name: s.Name, Namespace: os.Getenv("POD_NAMESPACE")}, &secret); err != nil {

@@ -66,7 +66,7 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	values := merge(rc.Spec.Values, secrets)
+	values := replicator.Merge(rc.Spec.TemplateValues.Values, secrets)
 
 	ownerRef := []metav1.OwnerReference{
 		{
@@ -78,9 +78,9 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	for _, ns := range namespaces.Items {
-		nsv := replicator.ExtractValues(ns.Annotations)
+		nsv := replicator.ExtractValues(ns, rc.Spec.TemplateValues.Namespace)
 
-		resources, err := replicator.RenderResources(&replicator.TemplateValues{Values: merge(values, nsv)}, rc.Spec.Resources)
+		resources, err := replicator.RenderResources(&replicator.TemplateValues{Values: replicator.Merge(values, nsv)}, rc.Spec.Resources)
 		if err != nil {
 			r.Recorder.Eventf(rc, "Warning", "RenderResources", "Unable to render resources for namespace %q: %v", ns.Name, err)
 			continue
@@ -105,16 +105,6 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	return ctrl.Result{}, nil
-}
-
-func merge(a, b map[string]string) map[string]string {
-	if a == nil {
-		return b
-	}
-	for k, v := range b {
-		a[k] = v
-	}
-	return a
 }
 
 // SetupWithManager sets up the controller with the Manager.
