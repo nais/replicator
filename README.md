@@ -19,12 +19,22 @@ metadata:
   name: team-resources
 spec:
   namespaceSelector:
-    matchLabels:
-      team-namespace: "true"
-  values: 
-    project: abc-123
-  valueSecrets:
-    - name: secret-containing-value
+    #matchLabels:
+    #  team-namespace: "true"
+    matchExpressions:
+      key: team
+      operator: Exists
+  templatingValues:
+    values: 
+      project: abc-123
+    secrets:
+      - name: secret-containing-value
+    namespace:
+      labels:
+        - team
+      annotations:
+        - beam
+  
   resources:
     - template: |
           kind: Secret
