@@ -6,9 +6,12 @@ Kubernetes operator that replicates resources, with templating functionality to 
 
 In the templated resources, you can use variables on the form `[[ .Values.<key> ]]`. 
 Values can either be: 
-- set directly in the `ReplicationConfig` resource in `spec.values` (simplest)
-- contained in a secret referred to by `spec.valueSecrets` (if it's a secret)
-- be set in a annotation in the target namespace on the form `replicator.nais.io/<key>: <value>` (if value is context/namespace specific)
+- set directly in the `ReplicationConfig` resource in `spec.templateValues.values` (simplest)
+- contained in a secret referred to by `spec.templateValues.secrets` (if it's a secret)
+
+If the value is specific for the namespace you can either:
+- set a annotation in the target namespace on the form `replicator.nais.io/<key>: <value>`
+- pick out labels or annotations in the target namespace by enumerating them in `spec.templateValues.namespace.{labels,annotations}`
 
 ## Example
 
@@ -19,11 +22,11 @@ metadata:
   name: team-resources
 spec:
   namespaceSelector:
-    #matchLabels:
-    #  team-namespace: "true"
     matchExpressions:
       - key: team
         operator: Exists
+    #matchLabels:
+    #  team-namespace: "true"
   templateValues:
     values: 
       project: abc-123
@@ -50,7 +53,7 @@ spec:
           metadata:          
             name: configconnectorcontext.core.cnrm.cloud.google.com
           spec:
-            googleServiceAccount: cnrm-[[ .Values.teamname ]]@[[ .Values.project ]].iam.gserviceaccount.com # teamname value would here be set from annotation on targeted namespace on the form: `replicator.nais.io/teamname: team`
+            googleServiceAccount: cnrm-[[ .Values.teamname ]]@[[ .Values.project ]].iam.gserviceaccount.com
 ```
 
 ## Development
