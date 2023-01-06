@@ -41,3 +41,44 @@ spec:
           spec:
             googleServiceAccount: cnrm-[[ .Values.teamname ]]@[[ .Values.project ]].iam.gserviceaccount.com # teamname value would here be set from annotation on targeted namespace on the form: `replicator.nais.io/teamname: team`
 ```
+
+## Development
+
+Create binary (includes generating go code and new manifests):
+
+```make build```
+
+Generate go code: 
+
+```make generate```
+
+Make new manifests through kubebuilder and kustomize:
+
+```make manifests```
+
+Running tests (will also generate code and create new manifests):
+
+```make test```
+
+PRs are always welcome!
+
+## Running in local cluster
+
+Set up local cluster:
+
+[Set up kind cluster](https://book.kubebuilder.io/reference/kind.html) (or equivalent)
+
+Load image into kind cluster:
+
+```make kind```
+
+If you want to test locally with webhook [install cert-manager](https://book.kubebuilder.io/cronjob-tutorial/cert-manager.html) in your local cluster and set enable-webhook=true in "run" target in the Makefile.
+
+Install:
+
+```make install```
+
+Run:
+
+```make run```
+
