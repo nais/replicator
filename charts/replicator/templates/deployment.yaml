@@ -47,7 +47,7 @@ spec:
         - name: DEBUG
           value: "{{ .Values.debug }}"
         image: {{ .Values.image.repository }}:{{ .Chart.Version }}
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         livenessProbe:
           httpGet:
             path: /healthz
