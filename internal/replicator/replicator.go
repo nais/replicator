@@ -55,9 +55,6 @@ func filter(m map[string]string, keys []string) map[string]string {
 	return values
 }
 
-// TODO: discuss how to handle annotations with url syntax - e.g. app.kubernetes.io/instance
-// should we get value after last slash (possible collisions with other annotations)?
-// or should we replace all . and slashes with _ (worse user experience with regards to templating)?
 func normalizeKey(key string) string {
 	if strings.Contains(key, "/") {
 		return strings.Split(key, "/")[1]

@@ -20,22 +20,23 @@ import (
 	"context"
 	"fmt"
 
-	log "github.com/sirupsen/logrus"
 	"nais/replicator/internal/replicator"
+
+	log "github.com/sirupsen/logrus"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/client-go/tools/record"
 
+	naisiov1 "nais/replicator/api/v1"
+
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	naisiov1 "nais/replicator/api/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// ReplicationConfigReconciler reconciles a ReplicationConfig object
 type ReplicationConfigReconciler struct {
 	client.Client
 	Scheme   *runtime.Scheme
@@ -46,7 +47,6 @@ type ReplicationConfigReconciler struct {
 //+kubebuilder:rbac:groups=nais.io,resources=replicationconfigs/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=nais.io,resources=replicationconfigs/finalizers,verbs=update
 //+kubebuilder:rbac:groups="*",resources=*,verbs=create;update;patch;get;list;watch
-
 func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	rc := &naisiov1.ReplicationConfig{}
 	err := r.Get(ctx, req.NamespacedName, rc)
@@ -107,7 +107,6 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	return ctrl.Result{}, nil
 }
 
-// SetupWithManager sets up the controller with the Manager.
 func (r *ReplicationConfigReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&naisiov1.ReplicationConfig{}).

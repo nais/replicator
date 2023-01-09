@@ -12,6 +12,7 @@ Values can either be:
 If the value is specific for the namespace you can either:
 - set a annotation in the target namespace on the form `replicator.nais.io/<key>: <value>`
 - pick out labels or annotations in the target namespace by enumerating them in `spec.templateValues.namespace.{labels,annotations}`
+  - If keys are formatted as url, e.g. `foo.bar.acme/key`, they will be normalized into `key`
 
 ## Example
 
