@@ -54,7 +54,7 @@ spec:
           metadata:          
             name: configconnectorcontext.core.cnrm.cloud.google.com
           spec:
-            googleServiceAccount: cnrm-[[ .Values.teamname ]]@[[ .Values.project ]].iam.gserviceaccount.com
+            googleServiceAccount: cnrm-[[ .Values.team ]]@[[ .Values.project ]].iam.gserviceaccount.com
 ```
 
 ## Development
