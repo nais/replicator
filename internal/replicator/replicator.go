@@ -30,8 +30,7 @@ func RenderResources(values *TemplateValues, resources []naisiov1.Resource) ([]*
 }
 
 func ExtractValues(namespace v1.Namespace, namespaceValues naisiov1.Namespace) map[string]string {
-	v := extractDefaultAnnotations(namespace.Annotations)
-	v = Merge(v, filter(namespace.Labels, namespaceValues.Labels))
+	v := filter(namespace.Labels, namespaceValues.Labels)
 	return Merge(v, filter(namespace.Annotations, namespaceValues.Annotations))
 }
 
@@ -60,18 +59,6 @@ func normalizeKey(key string) string {
 		return strings.Split(key, "/")[1]
 	}
 	return key
-}
-
-func extractDefaultAnnotations(annotations map[string]string) map[string]string {
-	values := make(map[string]string)
-	for key, value := range annotations {
-		kp := strings.Split(key, "replicator.nais.io/")
-		if len(kp) != 2 {
-			continue
-		}
-		values[kp[1]] = value
-	}
-	return values
 }
 
 func LoadSecrets(ctx context.Context, c client.Client, rc *naisiov1.ReplicationConfig) (map[string]string, error) {

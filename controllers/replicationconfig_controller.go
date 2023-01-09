@@ -43,10 +43,10 @@ type ReplicationConfigReconciler struct {
 	Recorder record.EventRecorder
 }
 
-//+kubebuilder:rbac:groups=nais.io,resources=replicationconfigs,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=nais.io,resources=replicationconfigs/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=nais.io,resources=replicationconfigs/finalizers,verbs=update
-//+kubebuilder:rbac:groups="*",resources=*,verbs=create;update;patch;get;list;watch
+// +kubebuilder:rbac:groups=nais.io,resources=replicationconfigs,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=nais.io,resources=replicationconfigs/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=nais.io,resources=replicationconfigs/finalizers,verbs=update
+// +kubebuilder:rbac:groups="*",resources=*,verbs=create;update;patch;get;list;watch
 func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	rc := &naisiov1.ReplicationConfig{}
 	err := r.Get(ctx, req.NamespacedName, rc)
