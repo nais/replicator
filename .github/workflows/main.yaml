@@ -30,7 +30,7 @@ jobs:
         run: |
           echo "NEW_VERSION: $(date '+%Y.%-m.%-d')-$(git rev-parse --short HEAD)"
           echo "NEW_VERSION=$(date '+%Y.%-m.%-d')-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-          echo "# Created version: $(date '+%Y.%-m.%-d')-$(git rev-parse --short HEAD) :rocket" >> $GITHUB_STEP_SUMMARY
+          echo "# Created version: $(date '+%Y.%-m.%-d')-$(git rev-parse --short HEAD)" >> $GITHUB_STEP_SUMMARY
       - id: "auth"
         name: "Authenticate to Google Cloud"
         uses: "google-github-actions/auth@v1.0.0"
