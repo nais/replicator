@@ -38,23 +38,22 @@ spec:
         - team
       annotations:
         - beam
-  
   resources:
     - template: |
-          kind: Secret
-          apiVersion: v1
-          type: kubernetes.io/Opaque
-          metadata:
-            name: replicator-secret
-          stringData:
-            apiKey: [[ .Values.apikey ]] # loaded from secret 
+        kind: Secret
+        apiVersion: v1
+        type: kubernetes.io/Opaque
+        metadata:
+          name: replicator-secret
+        stringData:
+          apiKey: [[ .Values.apikey ]] # loaded from secret 
     - template: |
-          apiVersion: core.cnrm.cloud.google.com/v1beta1
-          kind: ConfigConnectorContext
-          metadata:          
-            name: configconnectorcontext.core.cnrm.cloud.google.com
-          spec:
-            googleServiceAccount: cnrm-[[ .Values.team ]]@[[ .Values.project ]].iam.gserviceaccount.com
+        apiVersion: core.cnrm.cloud.google.com/v1beta1
+        kind: ConfigConnectorContext
+        metadata:          
+          name: configconnectorcontext.core.cnrm.cloud.google.com
+        spec:
+          googleServiceAccount: cnrm-[[ .Values.team ]]@[[ .Values.project ]].iam.gserviceaccount.com
 ```
 
 ## Development
