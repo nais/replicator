@@ -30,8 +30,8 @@ func RenderResources(values *TemplateValues, resources []naisiov1.Resource) ([]*
 }
 
 func ExtractValues(namespace v1.Namespace, namespaceValues naisiov1.Namespace) map[string]string {
-	v := filter(namespace.Labels, namespaceValues.Labels)
-	return Merge(v, filter(namespace.Annotations, namespaceValues.Annotations))
+	labels := filter(namespace.Labels, namespaceValues.Labels)
+	return Merge(labels, filter(namespace.Annotations, namespaceValues.Annotations))
 }
 
 func Merge(a, b map[string]string) map[string]string {

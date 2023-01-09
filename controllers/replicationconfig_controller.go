@@ -35,6 +35,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
 type ReplicationConfigReconciler struct {
@@ -110,6 +111,7 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 func (r *ReplicationConfigReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&naisiov1.ReplicationConfig{}).
+		WithEventFilter(predicate.GenerationChangedPredicate{}).
 		Complete(r)
 }
 
