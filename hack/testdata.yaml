@@ -2,8 +2,9 @@ apiVersion: v1
 kind: Namespace
 metadata:
   annotations:
-    replicator.nais.io/ns_value: "foo"
+    replicator.nais.io/annotation: "annotationValue"
   labels:
+    replicator.nais.io/label: "labelValue"
     team-namespace: "true"
     team: replicator-ns
   name: replicator-ns
@@ -20,4 +21,35 @@ metadata:
   namespace: replicator-system
 type: kubernetes.io/Opaque
 stringData:
-  s1: s1fromsecret
+  secret: sshhhh
+---
+apiVersion: nais.io/v1
+kind: ReplicationConfig
+metadata:
+  name: team-resources
+spec:
+  namespaceSelector:
+    matchLabels:
+      team-namespace: "true"
+  templateValues:
+    values:
+      val: pal
+    secrets:
+      - name: secret-containing-value
+    namespace:
+      annotations: 
+        - replicator.nais.io/annotation
+      labels: 
+        - replicator.nais.io/label
+  resources:
+    - template: |
+        kind: Secret
+        apiVersion: v1
+        type: kubernetes.io/Opaque
+        metadata:
+          name: replicator-secret
+        stringData:
+          secretValue: [[ .Values.secret ]] # loaded from secret 
+          val: [[ .Values.val ]]
+          nsLabel: [[ .Values.label ]]
+          nsAnnotation: [[ .Values.annotation ]]
