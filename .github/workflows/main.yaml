@@ -3,28 +3,22 @@ on:
   push:
     branches:
       - main
-
 env:
   REGISTRY: europe-north1-docker.pkg.dev/nais-io/nais/images
   IMAGE_NAME: replicator
 jobs:
-  # tests:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: actions/setup-go@v3
-  #       with:
-  #         go-version: ">=1.19.3"
-  #     - name: Vulnerability check
-  #       run: |
-  #         go install golang.org/x/vuln/cmd/govulncheck@latest
-  #         govulncheck ./...
-  #     - name: Test
-  #       run: go test -v ./...
-
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: ">=1.19.3"
+      - name: Test
+        run: go test -v ./...
   build_and_push:
     if: github.ref == 'refs/heads/main'
-    # needs: [tests]
+    needs: [tests]
     permissions:
       contents: "read"
       id-token: "write"
@@ -36,6 +30,7 @@ jobs:
         run: |
           echo "NEW_VERSION: $(date '+%Y.%-m.%-d')-$(git rev-parse --short HEAD)"
           echo "NEW_VERSION=$(date '+%Y.%-m.%-d')-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "# Created version: $(date '+%Y.%-m.%-d')-$(git rev-parse --short HEAD) :rocket" >> $GITHUB_STEP_SUMMARY
       - id: "auth"
         name: "Authenticate to Google Cloud"
         uses: "google-github-actions/auth@v1.0.0"
