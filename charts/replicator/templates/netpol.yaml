@@ -14,9 +14,7 @@ spec:
     - ports:
         - port: 9443
           protocol: TCP
-      from:
-        - ipBlock:
-            cidr: {{ .Values.apiserverIP }}/32
+      from: []
   podSelector:
     matchLabels:
       app: {{ .Release.Name }}
