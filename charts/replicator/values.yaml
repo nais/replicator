@@ -6,7 +6,7 @@ resources:
     cpu: 500m
     memory: 128Mi
   requests:
-    cpu: 10m
+    cpu: 10
     memory: 64Mi
 replicas: 1
 apiserverIP: "" # mapping value from Fasit

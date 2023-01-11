@@ -2,12 +2,14 @@ package replicator
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
 
 	naisiov1 "nais/replicator/api/v1"
 	"nais/replicator/internal/template"
 
+	hashstructure "github.com/mitchellh/hashstructure/v2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -75,4 +77,12 @@ func LoadSecrets(ctx context.Context, c client.Client, rc *naisiov1.ReplicationC
 		}
 	}
 	return values, nil
+}
+
+func Hash(rc *naisiov1.ReplicationConfigSpec) (string, error) {
+	hash, err := hashstructure.Hash(rc, hashstructure.FormatV2, nil)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%x", hash), nil
 }

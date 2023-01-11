@@ -21,7 +21,8 @@ type Resource struct {
 
 // ReplicationConfigStatus defines the observed state of ReplicationConfig
 type ReplicationConfigStatus struct {
-	LastSynchronized metav1.Time `json:"lastSynchronized,omitempty"`
+	SynchronizationTimestamp metav1.Time `json:"synchronizationTimestamp,omitempty"`
+	SynchronizationHash      string      `json:"synchronizationHash,omitempty"`
 }
 
 //+kubebuilder:object:root=true

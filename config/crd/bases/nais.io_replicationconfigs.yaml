@@ -121,7 +121,9 @@ spec:
           status:
             description: ReplicationConfigStatus defines the observed state of ReplicationConfig
             properties:
-              lastSynchronized:
+              synchronizationHash:
+                type: string
+              synchronizationTimestamp:
                 format: date-time
                 type: string
             type: object
