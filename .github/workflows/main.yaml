@@ -5,7 +5,7 @@ on:
       - main
 env:
   REGISTRY: europe-north1-docker.pkg.dev/nais-io/nais/images
-  IMAGE_NAME: replicator
+  NAME: replicator
 jobs:
   tests:
     runs-on: ubuntu-latest
@@ -36,7 +36,7 @@ jobs:
         uses: "google-github-actions/auth@v1.0.0"
         with:
           workload_identity_provider: ${{ secrets.NAIS_IO_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: "gh-replicator@nais-io.iam.gserviceaccount.com"
+          service_account: "gh-${{ env.NAME }}@nais-io.iam.gserviceaccount.com"
           token_format: "access_token"
       - name: Set up Docker Buildx
         id: buildx
@@ -66,9 +66,9 @@ jobs:
           version: "3.8.0"
       - name: Build Chart
         run: |-
-          sed -i "s/^version: .*/version: ${{ env.NEW_VERSION }}/g" charts/replicator/Chart.yaml
-          cat charts/replicator/Chart.yaml
-          helm package charts/replicator
+          sed -i "s/^version: .*/version: ${{ env.NEW_VERSION }}/g" feature/Chart.yaml
+          cat feature/Chart.yaml
+          helm package feature
       - name: Push Chart
         run: |-
-          helm push replicator*.tgz oci://europe-north1-docker.pkg.dev/nais-io/nais
+          helm push ${{ env.NAME }}*.tgz oci://europe-north1-docker.pkg.dev/nais-io/nais
