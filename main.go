@@ -67,7 +67,7 @@ func main() {
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.BoolVar(&enableWebhooks, "enable-webhooks", true, "Enable webhooks")
-	flag.BoolVar(&debug, "debug", os.Getenv("DEBUG") != "", "Enable debug logging")
+	flag.BoolVar(&debug, "debug", os.Getenv("DEBUG") == "true", "Enable debug logging")
 
 	opts := zap.Options{
 		Development: true,
