@@ -99,6 +99,8 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
+	log.Infof("finished reconciling %q to %d namespaces\n", rc.Name, len(namespaces.Items))
+
 	return ctrl.Result{}, nil
 }
 
