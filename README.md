@@ -54,6 +54,9 @@ spec:
           googleServiceAccount: cnrm-[[ .Values.team ]]@[[ .Values.project ]].iam.gserviceaccount.com
 ```
 
+## Force reconciliation of resource
+If you want to trigger a reconciliation of a ReplicationConfig you can patch the `ReplicationConfig` resource, removing the `status.synchronizationHash` field using the command: `kubectl patch repconf <name> -p '[{"op": "remove", "path": "/status/synchronizationHash"}]' --type=json`. 
+
 ## Development
 
 Create binary (includes generating go code and new manifests):
