@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"nais/replicator/internal/replicator"
 
@@ -23,8 +24,9 @@ import (
 
 type ReplicationConfigReconciler struct {
 	client.Client
-	Scheme   *runtime.Scheme
-	Recorder record.EventRecorder
+	Scheme       *runtime.Scheme
+	Recorder     record.EventRecorder
+	SyncInterval time.Duration
 }
 
 // +kubebuilder:rbac:groups=nais.io,resources=replicationconfigs,verbs=get;list;watch;create;update;patch;delete
@@ -43,9 +45,11 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	if rc.Status.SynchronizationHash == hash {
+	if rc.Status.SynchronizationHash == hash && !r.needsSync(rc.Status.SynchronizationTimestamp.Time) {
 		log.Debugf("skipping reconciliation of %q, hash %q is unchanged", rc.Name, hash)
 		return ctrl.Result{}, nil
+	} else {
+		log.Debugf("reconciling: hash changed: %v, needs sync by interval: %v", rc.Status.SynchronizationHash != hash, r.needsSync(rc.Status.SynchronizationTimestamp.Time))
 	}
 
 	namespaces, err := r.listNamespaces(ctx, &rc.Spec.NamespaceSelector)
@@ -144,4 +148,8 @@ func (r ReplicationConfigReconciler) createResource(ctx context.Context, resourc
 		}
 	}
 	return nil
+}
+
+func (r *ReplicationConfigReconciler) needsSync(timestamp time.Time) bool {
+	return timestamp.Before(time.Now().Add(-r.SyncInterval))
 }
