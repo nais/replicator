@@ -85,8 +85,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	// interval := 10 * time.Hour
-	interval := 1 * time.Minute
+	interval := 15 * time.Minute
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     metricsAddr,
@@ -102,9 +101,10 @@ func main() {
 	}
 
 	if err = (&controllers.ReplicationConfigReconciler{
-		Client:   mgr.GetClient(),
-		Scheme:   mgr.GetScheme(),
-		Recorder: mgr.GetEventRecorderFor("replicator"),
+		Client:       mgr.GetClient(),
+		Scheme:       mgr.GetScheme(),
+		Recorder:     mgr.GetEventRecorderFor("replicator"),
+		SyncInterval: interval,
 	}).SetupWithManager(mgr); err != nil {
 		log.Errorf("unable to create controller %v", err)
 		os.Exit(1)
