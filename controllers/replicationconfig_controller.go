@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"nais/replicator/internal/replicator"
 
@@ -43,9 +44,11 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	if rc.Status.SynchronizationHash == hash {
+	if rc.Status.SynchronizationHash == hash && rc.Status.SynchronizationTimestamp.After(time.Now().Add(-1*time.Minute)) {
 		log.Debugf("skipping reconciliation of %q, hash %q is unchanged", rc.Name, hash)
 		return ctrl.Result{}, nil
+	} else {
+		log.Debugf("reconciling %q, hash %q is changed or time something", rc.Name, hash)
 	}
 
 	namespaces, err := r.listNamespaces(ctx, &rc.Spec.NamespaceSelector)

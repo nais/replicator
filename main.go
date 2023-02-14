@@ -55,7 +55,6 @@ func init() {
 }
 
 func main() {
-
 	var metricsAddr string
 	var enableLeaderElection bool
 	var probeAddr string
@@ -86,7 +85,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	interval := 10 * time.Hour
+	// interval := 10 * time.Hour
+	interval := 1 * time.Minute
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     metricsAddr,
