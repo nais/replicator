@@ -30,7 +30,6 @@ func TestResources(t *testing.T) {
 	resources, err := RenderResources(values, r.Spec.Resources)
 	assert.NoError(t, err)
 	fmt.Printf("resources: %v\n", resources[0].Object["data"])
-
 }
 
 func TestExtractValues(t *testing.T) {
