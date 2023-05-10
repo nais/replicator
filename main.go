@@ -19,6 +19,7 @@ package main
 import (
 	"flag"
 	"os"
+	"strconv"
 	"time"
 
 	"nais/replicator/internal/logger"
@@ -60,6 +61,7 @@ func main() {
 	var probeAddr string
 	var enableWebhooks bool
 	var debug bool
+	var syncInterval string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
@@ -67,6 +69,7 @@ func main() {
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.BoolVar(&enableWebhooks, "enable-webhooks", true, "Enable webhooks")
 	flag.BoolVar(&debug, "debug", os.Getenv("DEBUG") == "true", "Enable debug logging")
+	flag.StringVar(&syncInterval, "sync-interval", os.Getenv("SYNC_INTERVAL_MINUTES"), "Syncronization interval for reconciliation in minutes")
 
 	opts := zap.Options{
 		Development: true,
@@ -86,6 +89,15 @@ func main() {
 	}
 
 	interval := 15 * time.Minute
+	if syncInterval != "" {
+		syncIntervalInt, err := strconv.Atoi(syncInterval)
+		if err != nil {
+			log.Errorf("unable to convert sync interval to number %v", err)
+			os.Exit(1)
+		}
+		interval = time.Duration(syncIntervalInt) * time.Minute
+	}
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     metricsAddr,

@@ -47,6 +47,8 @@ spec:
           value: cluster.local
         - name: DEBUG
           value: "{{ .Values.debug }}"
+        - name: SYNC_INTERVAL_MINUTES
+          value: "{{ .Values.syncIntervalMinutes }}"
         image: {{ .Values.image.repository }}:{{ .Chart.Version }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         livenessProbe:
