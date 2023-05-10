@@ -7,6 +7,7 @@ import (
 	"os"
 
 	naisiov1 "nais/replicator/api/v1"
+	"nais/replicator/internal/replicator"
 	"nais/replicator/internal/template"
 
 	v1 "k8s.io/api/core/v1"
@@ -54,7 +55,7 @@ func (v *ReplicatorValidator) validateReplicationConfig(rc *naisiov1.Replication
 		if resource.Template == "" {
 			return fmt.Errorf("template is empty")
 		}
-		resource, err := template.RenderTemplate(map[string]string{}, resource.Template, template.WithOption("missingkey=invalid"))
+		resource, err := template.RenderTemplate(replicator.TemplateValues{Values: map[string]string{}}, resource.Template, template.WithOption("missingkey=invalid"))
 		if err != nil {
 			return fmt.Errorf("failed to render template: %w", err)
 		}
