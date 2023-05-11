@@ -36,7 +36,7 @@ spec:
       containers:
       - args:
         - --leader-elect
-        - --sync-interval={{ .Values.syncIntervalMinutes }}
+        - --sync-interval={{ .Values.syncInterval }}
         command:
         - /manager
         env:
