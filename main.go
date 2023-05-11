@@ -69,7 +69,7 @@ func main() {
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.BoolVar(&enableWebhooks, "enable-webhooks", true, "Enable webhooks")
 	flag.BoolVar(&debug, "debug", os.Getenv("DEBUG") == "true", "Enable debug logging")
-	flag.StringVar(&syncInterval, "sync-interval", os.Getenv("SYNC_INTERVAL_MINUTES"), "Syncronization interval for reconciliation in minutes")
+	flag.StringVar(&syncInterval, "sync-interval", os.Getenv("SYNC_INTERVAL_MINUTES"), "Synchronization interval for reconciliation in minutes")
 
 	opts := zap.Options{
 		Development: true,
