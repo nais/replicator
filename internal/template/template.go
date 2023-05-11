@@ -2,9 +2,8 @@ package template
 
 import (
 	"bytes"
+	"encoding/base64"
 	"text/template"
-
-	b64 "encoding/base64"
 
 	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -77,5 +76,5 @@ func renderString(values any, tpl string, tplOptions ...RenderOption) (string, e
 }
 
 func b64enc(s string) string {
-	return b64.StdEncoding.EncodeToString([]byte(s))
+	return base64.StdEncoding.EncodeToString([]byte(s))
 }
