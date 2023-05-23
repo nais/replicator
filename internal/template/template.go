@@ -2,6 +2,7 @@ package template
 
 import (
 	"bytes"
+	"encoding/base64"
 	"text/template"
 
 	"gopkg.in/yaml.v2"
@@ -56,7 +57,9 @@ func repairMapAny(v any) any {
 }
 
 func renderString(values any, tpl string, tplOptions ...RenderOption) (string, error) {
-	t := template.New("tpl").Delims("[[", "]]")
+	t := template.New("tpl").Delims("[[", "]]").Funcs(template.FuncMap{
+		"b64enc": b64enc,
+	})
 	for _, option := range tplOptions {
 		t = option(t)
 	}
@@ -70,4 +73,9 @@ func renderString(values any, tpl string, tplOptions ...RenderOption) (string, e
 		return "", err
 	}
 	return buf.String(), nil
+}
+
+func b64enc(in any) string {
+	s, _ := in.(string)
+	return base64.StdEncoding.EncodeToString([]byte(s))
 }

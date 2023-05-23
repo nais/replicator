@@ -11,3 +11,4 @@ replicas: 1
 apiserverIP: "" # mapping value from Fasit
 debug: false
 monitoring: true
+syncInterval: 15m
