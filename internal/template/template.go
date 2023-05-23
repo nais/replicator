@@ -75,6 +75,7 @@ func renderString(values any, tpl string, tplOptions ...RenderOption) (string, e
 	return buf.String(), nil
 }
 
-func b64enc(s string) string {
+func b64enc(in any) string {
+	s, _ := in.(string)
 	return base64.StdEncoding.EncodeToString([]byte(s))
 }
