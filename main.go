@@ -60,6 +60,7 @@ func main() {
 	var probeAddr string
 	var enableWebhooks bool
 	var debug bool
+	var interval time.Duration
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
@@ -67,6 +68,7 @@ func main() {
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.BoolVar(&enableWebhooks, "enable-webhooks", true, "Enable webhooks")
 	flag.BoolVar(&debug, "debug", os.Getenv("DEBUG") == "true", "Enable debug logging")
+	flag.DurationVar(&interval, "sync-interval", 15*time.Minute, "Synchronization interval for reconciliation")
 
 	opts := zap.Options{
 		Development: true,
@@ -85,7 +87,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	interval := 15 * time.Minute
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     metricsAddr,

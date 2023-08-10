@@ -7,9 +7,18 @@ env:
   NAME: replicator
   IMAGE_REPOSITORY: oci://europe-north1-docker.pkg.dev/nais-io/nais
 jobs:
-  build_push:
-    outputs:
-      version: ${{ steps.build-push-sign.outputs.version }}
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: ">=1.19.3"
+      - name: Test
+        run: go test -v ./...
+  build_and_push:
+    if: github.ref == 'refs/heads/main'
+    needs: [tests]
     permissions:
       contents: "read"
       id-token: "write"
