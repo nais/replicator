@@ -7,6 +7,7 @@ import (
 
 	"nais/replicator/internal/replicator"
 
+	"github.com/davecgh/go-spew/spew"
 	log "github.com/sirupsen/logrus"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -88,6 +89,9 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		log.Debugf("rendered %d resources for namespace %q", len(resources), ns.Name)
 
 		for _, resource := range resources {
+			fmt.Println("resource:", resource.GetKind(), resource.GetName())
+			spew.Dump(resource)
+
 			resource.SetNamespace(ns.Name)
 			resource.SetOwnerReferences(ownerRef)
 			err = r.createResource(ctx, resource)

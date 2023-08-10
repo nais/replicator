@@ -1,74 +1,52 @@
-name: Build and deploy
+name: Build and push image and chart
 on:
   push:
     branches:
       - main
 env:
-  REGISTRY: europe-north1-docker.pkg.dev/nais-io/nais/images
   NAME: replicator
+  IMAGE_REPOSITORY: oci://europe-north1-docker.pkg.dev/nais-io/nais
 jobs:
-  tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
-        with:
-          go-version: ">=1.19.3"
-      - name: Test
-        run: go test -v ./...
-  build_and_push:
-    if: github.ref == 'refs/heads/main'
-    needs: [tests]
+  build_push:
+    outputs:
+      version: ${{ steps.build-push-sign.outputs.version }}
     permissions:
       contents: "read"
       id-token: "write"
+    name: Build and push
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Create new version
-        run: |
-          echo "NEW_VERSION: $(date '+%Y.%-m.%-d')-$(git rev-parse --short HEAD)"
-          echo "NEW_VERSION=$(date '+%Y.%-m.%-d')-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-          echo "# Created version: $(date '+%Y.%-m.%-d')-$(git rev-parse --short HEAD)" >> $GITHUB_STEP_SUMMARY
-      - id: "auth"
-        name: "Authenticate to Google Cloud"
-        uses: "google-github-actions/auth@v1.0.0"
+      - uses: actions/checkout@v3.5.3
+      - uses: nais/platform-build-push-sign@main
+        id: build-push-sign
         with:
+          name: ${{ env.NAME }}
+          google_service_account: gh-${{ env.NAME }}
           workload_identity_provider: ${{ secrets.NAIS_IO_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: "gh-${{ env.NAME }}@nais-io.iam.gserviceaccount.com"
-          token_format: "access_token"
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v2
-      - name: Login to registry
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: "oauth2accesstoken"
-          password: "${{ steps.auth.outputs.access_token }}"
-      - name: Build and push
-        if: github.ref == 'refs/heads/main'
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          file: Dockerfile
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.NAME }}:${{ env.NEW_VERSION }},${{ env.REGISTRY }}/${{ env.NAME }}:latest
-          labels: |
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.version=${{ env.NEW_VERSION }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      - uses: azure/setup-helm@v1
+      - uses: azure/setup-helm@v3
         name: "Setup Helm"
         with:
-          version: "3.8.0"
+          version: "3.12.0"
       - name: Build Chart
         run: |-
-          sed -i "s/^version: .*/version: ${{ env.NEW_VERSION }}/g" feature/Chart.yaml
-          cat feature/Chart.yaml
-          helm package feature
+          sed -i "s/^version: .*/version: ${{ steps.build-push-sign.outputs.version }}/g" charts/Chart.yaml
+          cat charts/Chart.yaml
+          helm package charts
       - name: Push Chart
         run: |-
-          helm push ${{ env.NAME }}*.tgz oci://europe-north1-docker.pkg.dev/nais-io/nais
+          helm push ${{ env.NAME }}*.tgz ${{ env.IMAGE_REPOSITORY }}
+  rollout:
+    needs:
+      - build_push
+    runs-on: fasit-deploy
+    permissions:
+      id-token: write
+    steps:
+      - uses: nais/fasit-deploy@v2
+        with:
+          chart: ${{ env.IMAGE_REPOSITORY }}/${{ env.NAME }}
+          version: ${{ needs.build_push.outputs.version }}
+          feature_name: ${{ env.NAME }}
+
+
