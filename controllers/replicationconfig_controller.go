@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"nais/replicator/internal/replicator"
@@ -21,6 +22,11 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+const (
+	ReplicationConfigLabelSync     = "replicationconfig.nais.io/sync"
+	ReplicationConfigLabelSyncTime = "replicationconfig.nais.io/sync-time"
 )
 
 type ReplicationConfigReconciler struct {
@@ -46,13 +52,15 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
+	r.SyncInterval = r.updateSyncInterval(rc.Labels[ReplicationConfigLabelSyncTime])
+
 	// skip reconciliation if hash is unchanged and timestamp is within sync interval
 	// reconciliation is triggered when status subresource is updated, so we need this check to avoid infinite loop
-	if rc.Status.SynchronizationHash == hash && !r.needsSync(rc.Status.SynchronizationTimestamp.Time) {
+	if rc.Status.SynchronizationHash == hash && !r.needsSync(rc.Status.SynchronizationTimestamp.Time, rc.Labels[ReplicationConfigLabelSync]) {
 		log.Debugf("skipping reconciliation of %q, hash %q is unchanged and changed within syncInterval window", rc.Name, hash)
 		return ctrl.Result{}, nil
 	} else {
-		log.Debugf("reconciling: hash changed: %v, outside syncInterval window: %v", rc.Status.SynchronizationHash != hash, r.needsSync(rc.Status.SynchronizationTimestamp.Time))
+		log.Debugf("reconciling: hash changed: %v, outside syncInterval window: %v", rc.Status.SynchronizationHash != hash, r.needsSync(rc.Status.SynchronizationTimestamp.Time, ""))
 	}
 
 	namespaces, err := r.listNamespaces(ctx, &rc.Spec.NamespaceSelector)
@@ -134,7 +142,7 @@ func (r *ReplicationConfigReconciler) listNamespaces(ctx context.Context, ls *me
 	return namespaces, nil
 }
 
-func (r ReplicationConfigReconciler) createResource(ctx context.Context, resource *unstructured.Unstructured) error {
+func (r *ReplicationConfigReconciler) createResource(ctx context.Context, resource *unstructured.Unstructured) error {
 	err := r.Create(ctx, resource)
 	if client.IgnoreAlreadyExists(err) != nil {
 		return fmt.Errorf("creating resource: %w", err)
@@ -156,7 +164,23 @@ func (r ReplicationConfigReconciler) createResource(ctx context.Context, resourc
 	return nil
 }
 
-func (r *ReplicationConfigReconciler) needsSync(timestamp time.Time) bool {
+func (r *ReplicationConfigReconciler) needsSync(timestamp time.Time, labelSync string) bool {
+	if labelSync == "false" {
+		return false
+	}
 	window := time.Now().Add(-r.SyncInterval)
 	return timestamp.Before(window)
+}
+
+func (r *ReplicationConfigReconciler) updateSyncInterval(labelSyncTime string) time.Duration {
+	if labelSyncTime == "" {
+		return r.SyncInterval
+	}
+
+	syncTime, err := strconv.Atoi(labelSyncTime)
+	if err != nil {
+		log.Errorf("unable to parse %q label: %v", ReplicationConfigLabelSyncTime, err)
+		return r.SyncInterval
+	}
+	return time.Duration(syncTime) * time.Minute
 }
