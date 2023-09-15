@@ -60,7 +60,7 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		log.Debugf("skipping reconciliation of %q, hash %q is unchanged and changed within syncInterval window", rc.Name, hash)
 		return ctrl.Result{}, nil
 	} else {
-		log.Debugf("reconciling: hash changed: %v, outside syncInterval window: %v", rc.Status.SynchronizationHash != hash, r.needsSync(rc.Status.SynchronizationTimestamp.Time, ""))
+		log.Debugf("reconciling: hash changed: %v, outside syncInterval window: %v", rc.Status.SynchronizationHash != hash, r.needsSync(rc.Status.SynchronizationTimestamp.Time, rc.Labels[ReplicationConfigLabelSync]))
 	}
 
 	namespaces, err := r.listNamespaces(ctx, &rc.Spec.NamespaceSelector)
