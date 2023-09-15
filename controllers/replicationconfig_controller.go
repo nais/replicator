@@ -25,7 +25,6 @@ import (
 )
 
 const (
-	ReplicationConfigLabelSync     = "replicationconfig.nais.io/sync"
 	ReplicationConfigLabelSyncTime = "replicationconfig.nais.io/sync-time"
 )
 
@@ -56,11 +55,11 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	// skip reconciliation if hash is unchanged and timestamp is within sync interval
 	// reconciliation is triggered when status subresource is updated, so we need this check to avoid infinite loop
-	if rc.Status.SynchronizationHash == hash && !r.needsSync(rc.Status.SynchronizationTimestamp.Time, rc.Labels[ReplicationConfigLabelSync]) {
+	if rc.Status.SynchronizationHash == hash && !r.needsSync(rc.Status.SynchronizationTimestamp.Time) {
 		log.Debugf("skipping reconciliation of %q, hash %q is unchanged and changed within syncInterval window", rc.Name, hash)
 		return ctrl.Result{}, nil
 	} else {
-		log.Debugf("reconciling: hash changed: %v, outside syncInterval window: %v", rc.Status.SynchronizationHash != hash, r.needsSync(rc.Status.SynchronizationTimestamp.Time, rc.Labels[ReplicationConfigLabelSync]))
+		log.Debugf("reconciling: hash changed: %v, outside syncInterval window: %v", rc.Status.SynchronizationHash != hash, r.needsSync(rc.Status.SynchronizationTimestamp.Time))
 	}
 
 	namespaces, err := r.listNamespaces(ctx, &rc.Spec.NamespaceSelector)
@@ -164,10 +163,7 @@ func (r *ReplicationConfigReconciler) createResource(ctx context.Context, resour
 	return nil
 }
 
-func (r *ReplicationConfigReconciler) needsSync(timestamp time.Time, labelSync string) bool {
-	if labelSync == "false" {
-		return false
-	}
+func (r *ReplicationConfigReconciler) needsSync(timestamp time.Time) bool {
 	window := time.Now().Add(-r.SyncInterval)
 	return timestamp.Before(window)
 }
@@ -182,5 +178,13 @@ func (r *ReplicationConfigReconciler) updateSyncInterval(labelSyncTime string) t
 		log.Errorf("unable to parse %q label: %v", ReplicationConfigLabelSyncTime, err)
 		return r.SyncInterval
 	}
-	return time.Duration(syncTime) * time.Minute
+
+	newSyncTime := time.Duration(syncTime) * time.Minute
+
+	if newSyncTime < r.SyncInterval {
+		log.Warnf("invalid %q label value: %v", ReplicationConfigLabelSyncTime, syncTime)
+		return r.SyncInterval
+	}
+
+	return newSyncTime
 }
