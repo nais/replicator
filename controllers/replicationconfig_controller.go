@@ -179,12 +179,12 @@ func (r *ReplicationConfigReconciler) updateSyncInterval(labelSyncTime string) t
 		return r.SyncInterval
 	}
 
-	newSyncTime := time.Duration(syncTime) * time.Minute
+	nextSyncTime := time.Duration(syncTime) * time.Minute
 
-	if newSyncTime < r.SyncInterval {
+	if nextSyncTime < r.SyncInterval {
 		log.Warnf("invalid %q label value: %v", ReplicationConfigLabelSyncTime, syncTime)
 		return r.SyncInterval
 	}
 
-	return newSyncTime
+	return nextSyncTime
 }
