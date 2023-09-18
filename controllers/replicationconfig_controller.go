@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"nais/replicator/internal/resources"
 	"strconv"
 	"time"
 
@@ -59,7 +60,7 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		log.Debugf("skipping reconciliation of %q, hash %q is unchanged and changed within syncInterval window", rc.Name, hash)
 		return ctrl.Result{}, nil
 	} else {
-		log.Debugf("reconciling: hash changed: %v, outside syncInterval window: %v", rc.Status.SynchronizationHash != hash, r.needsSync(rc.Status.SynchronizationTimestamp.Time))
+		log.Debugf("reconciling: hash changed: %v, outside syncInterval window: %v, next sync: %v", rc.Status.SynchronizationHash != hash, r.needsSync(rc.Status.SynchronizationTimestamp.Time), r.nextSync())
 	}
 
 	namespaces, err := r.listNamespaces(ctx, &rc.Spec.NamespaceSelector)
@@ -96,17 +97,16 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		log.Debugf("rendered %d resources for namespace %q", len(resources), ns.Name)
 
 		for _, resource := range resources {
-			fmt.Println("resource:", resource.GetKind(), resource.GetName())
+			log.Debugf("resources: %s %s", resource.GetKind(), resource.GetName())
 			spew.Dump(resource)
 
 			resource.SetNamespace(ns.Name)
 			resource.SetOwnerReferences(ownerRef)
-			err = r.createResource(ctx, resource)
+			err = r.createUpdateResource(ctx, resource)
 			if err != nil {
-				r.Recorder.Eventf(rc, "Warning", "CreateResource", "Unable to create resource %v/%v for namespace %q: %v", resource.GetKind(), resource.GetName(), ns.Name, err)
+				r.Recorder.Eventf(rc, "Warning", "CreateResource", "Unable to create resources %v/%v for namespace %q: %v", resource.GetKind(), resource.GetName(), ns.Name, err)
 				continue
 			}
-			log.Debugf("created resource %v/%v for namespace %q", resource.GetKind(), resource.GetName(), ns.Name)
 		}
 	}
 
@@ -141,31 +141,58 @@ func (r *ReplicationConfigReconciler) listNamespaces(ctx context.Context, ls *me
 	return namespaces, nil
 }
 
-func (r *ReplicationConfigReconciler) createResource(ctx context.Context, resource *unstructured.Unstructured) error {
+func (r *ReplicationConfigReconciler) createUpdateResource(ctx context.Context, resource *unstructured.Unstructured) error {
 	err := r.Create(ctx, resource)
 	if client.IgnoreAlreadyExists(err) != nil {
-		return fmt.Errorf("creating resource: %w", err)
+		return fmt.Errorf("creating resources: %w", err)
 	}
-	if errors.IsAlreadyExists(err) {
-		existing := &unstructured.Unstructured{}
-		existing.SetGroupVersionKind(resource.GroupVersionKind())
-		err := r.Get(ctx, client.ObjectKeyFromObject(resource), existing)
-		if err != nil {
-			return fmt.Errorf("getting existing resource: %w", err)
-		}
-		resource.SetResourceVersion(existing.GetResourceVersion())
 
+	if errors.IsAlreadyExists(err) {
+		if err := r.updateResource(ctx, resource); err != nil {
+			return fmt.Errorf("updating resources: %w", err)
+		}
+		return nil
+	}
+
+	log.Infof("created resources %v/%v for namespace %q", resource.GetKind(), resource.GetName(), resource.GetNamespace())
+	return nil
+}
+
+func (r *ReplicationConfigReconciler) updateResource(ctx context.Context, resource *unstructured.Unstructured) error {
+	existing := &unstructured.Unstructured{}
+	existing.SetGroupVersionKind(resource.GroupVersionKind())
+	err := r.Get(ctx, client.ObjectKeyFromObject(resource), existing)
+	if err != nil {
+		return fmt.Errorf("getting existing resources: %w", err)
+	}
+
+	changed, err := resources.HasChanged(existing, resource)
+	log.Debugf("rescouces has changed: %v", changed)
+	if err != nil {
+		return fmt.Errorf("comparing resources: %w", err)
+	}
+
+	if changed {
+		resource.SetResourceVersion(existing.GetResourceVersion())
 		err = r.Update(ctx, resource)
 		if err != nil {
-			return fmt.Errorf("updating resource: %w", err)
+			return fmt.Errorf("updating resources: %w", err)
 		}
+		log.Infof("updated resources %v/%v for namespace %q", resource.GetKind(), resource.GetName(), resource.GetNamespace())
+		return nil
 	}
+
+	log.Infof("resources %v/%v for namespace %q is unchanged", resource.GetKind(), resource.GetName(), resource.GetNamespace())
 	return nil
 }
 
 func (r *ReplicationConfigReconciler) needsSync(timestamp time.Time) bool {
-	window := time.Now().Add(-r.SyncInterval)
+	window := r.nextSync()
 	return timestamp.Before(window)
+}
+
+func (r *ReplicationConfigReconciler) nextSync() time.Time {
+	return time.Now().Add(-r.SyncInterval)
 }
 
 func (r *ReplicationConfigReconciler) updateSyncInterval(labelSyncTime string) time.Duration {
