@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"nais/replicator/internal/resources"
-	"strconv"
 	"time"
 
 	"nais/replicator/internal/replicator"
@@ -23,10 +22,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-)
-
-const (
-	ReplicationConfigLabelSyncInterval = "replicationconfig.nais.io/sync-interval"
 )
 
 type ReplicationConfigReconciler struct {
@@ -52,12 +47,10 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	r.SyncInterval = r.parseSyncInterval(rc.Labels[ReplicationConfigLabelSyncInterval])
-
 	// skip reconciliation if hash is unchanged and timestamp is within sync interval
 	// reconciliation is triggered when status subresource is updated, so we need this check to avoid infinite loop
 	if rc.Status.SynchronizationHash == hash && !r.needsSync(rc.Status.SynchronizationTimestamp.Time) {
-		log.Debugf("skipping reconciliation of %q, hash %q is unchanged and changed within syncInterval window, next sync %v", rc.Name, hash, r.nextSync())
+		log.Debugf("skipping reconciliation of %q, hash %q is unchanged and changed within syncInterval window", rc.Name, hash)
 		return ctrl.Result{}, nil
 	} else {
 		log.Debugf("reconciling: hash changed: %v, outside syncInterval window: %v", rc.Status.SynchronizationHash != hash, r.needsSync(rc.Status.SynchronizationTimestamp.Time))
@@ -89,14 +82,14 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	for _, ns := range namespaces.Items {
 		nsv := replicator.ExtractValues(ns, rc.Spec.TemplateValues.Namespace)
 
-		resources, err := replicator.RenderResources(&replicator.TemplateValues{Values: replicator.Merge(values, nsv)}, rc.Spec.Resources)
+		renderResources, err := replicator.RenderResources(&replicator.TemplateValues{Values: replicator.Merge(values, nsv)}, rc.Spec.Resources)
 		if err != nil {
 			r.Recorder.Eventf(rc, "Warning", "RenderResources", "Unable to render resources for namespace %q: %v", ns.Name, err)
 			continue
 		}
-		log.Debugf("rendered %d resources for namespace %q", len(resources), ns.Name)
+		log.Debugf("rendered %d resources for namespace %q", len(renderResources), ns.Name)
 
-		for _, resource := range resources {
+		for _, resource := range renderResources {
 			log.Debugf("resources: %s %s", resource.GetKind(), resource.GetName())
 			spew.Dump(resource)
 
@@ -187,31 +180,6 @@ func (r *ReplicationConfigReconciler) updateResource(ctx context.Context, resour
 }
 
 func (r *ReplicationConfigReconciler) needsSync(timestamp time.Time) bool {
-	window := r.nextSync()
+	window := time.Now().Add(-r.SyncInterval)
 	return timestamp.Before(window)
-}
-
-func (r *ReplicationConfigReconciler) nextSync() time.Time {
-	return time.Now().Add(-r.SyncInterval)
-}
-
-func (r *ReplicationConfigReconciler) parseSyncInterval(labelSyncTime string) time.Duration {
-	if labelSyncTime == "" {
-		return r.SyncInterval
-	}
-
-	syncTime, err := strconv.Atoi(labelSyncTime)
-	if err != nil {
-		log.Errorf("unable to parse %q label: %v", ReplicationConfigLabelSyncInterval, err)
-		return r.SyncInterval
-	}
-
-	nextSyncTime := time.Duration(syncTime) * time.Minute
-
-	if nextSyncTime < r.SyncInterval {
-		log.Warnf("invalid %q label value: %v, minimum: %v", ReplicationConfigLabelSyncInterval, syncTime, r.SyncInterval.Minutes())
-		return r.SyncInterval
-	}
-
-	return nextSyncTime
 }
