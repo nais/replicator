@@ -90,14 +90,14 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		log.Debugf("rendered %d resources for namespace %q", len(renderResources), ns.Name)
 
 		for _, resource := range renderResources {
-			log.Debugf("resources: %s %s", resource.GetKind(), resource.GetName())
+			log.Debugf("resource: %s %s", resource.GetKind(), resource.GetName())
 			spew.Dump(resource)
 
 			resource.SetNamespace(ns.Name)
 			resource.SetOwnerReferences(ownerRef)
 			err = r.createUpdateResource(ctx, resource)
 			if err != nil {
-				r.Recorder.Eventf(rc, "Warning", "CreateResource", "Unable to create resources %v/%v for namespace %q: %v", resource.GetKind(), resource.GetName(), ns.Name, err)
+				r.Recorder.Eventf(rc, "Warning", "CreateResource", "Unable to create resource %v/%v for namespace %q: %v", resource.GetKind(), resource.GetName(), ns.Name, err)
 				continue
 			}
 		}
@@ -147,7 +147,7 @@ func (r *ReplicationConfigReconciler) createUpdateResource(ctx context.Context, 
 		return nil
 	}
 
-	log.Infof("created resources %v/%v for namespace %q", resource.GetKind(), resource.GetName(), resource.GetNamespace())
+	log.Infof("created resource %v/%v for namespace %q", resource.GetKind(), resource.GetName(), resource.GetNamespace())
 	return nil
 }
 
@@ -156,7 +156,7 @@ func (r *ReplicationConfigReconciler) updateResource(ctx context.Context, resour
 	existing.SetGroupVersionKind(resource.GroupVersionKind())
 	err := r.Get(ctx, client.ObjectKeyFromObject(resource), existing)
 	if err != nil {
-		return fmt.Errorf("getting existing resources: %w", err)
+		return fmt.Errorf("getting existing resource: %w", err)
 	}
 
 	changed, err := resources.HasChanged(existing, resource)
@@ -169,13 +169,13 @@ func (r *ReplicationConfigReconciler) updateResource(ctx context.Context, resour
 		resource.SetResourceVersion(existing.GetResourceVersion())
 		err = r.Update(ctx, resource)
 		if err != nil {
-			return fmt.Errorf("updating resources: %w", err)
+			return fmt.Errorf("updating resource: %w", err)
 		}
-		log.Infof("updated resources %v/%v for namespace %q", resource.GetKind(), resource.GetName(), resource.GetNamespace())
+		log.Infof("updated resource %v/%v for namespace %q", resource.GetKind(), resource.GetName(), resource.GetNamespace())
 		return nil
 	}
 
-	log.Infof("resources %v/%v for namespace %q is unchanged", resource.GetKind(), resource.GetName(), resource.GetNamespace())
+	log.Infof("resource %v/%v for namespace %q is unchanged", resource.GetKind(), resource.GetName(), resource.GetNamespace())
 	return nil
 }
 
