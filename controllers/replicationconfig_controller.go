@@ -52,7 +52,7 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	r.SyncInterval = r.updateSyncInterval(rc.Labels[ReplicationConfigLabelSyncTime])
+	r.SyncInterval = r.parseSyncInterval(rc.Labels[ReplicationConfigLabelSyncTime])
 
 	// skip reconciliation if hash is unchanged and timestamp is within sync interval
 	// reconciliation is triggered when status subresource is updated, so we need this check to avoid infinite loop
@@ -195,7 +195,7 @@ func (r *ReplicationConfigReconciler) nextSync() time.Time {
 	return time.Now().Add(-r.SyncInterval)
 }
 
-func (r *ReplicationConfigReconciler) updateSyncInterval(labelSyncTime string) time.Duration {
+func (r *ReplicationConfigReconciler) parseSyncInterval(labelSyncTime string) time.Duration {
 	if labelSyncTime == "" {
 		return r.SyncInterval
 	}
@@ -209,7 +209,7 @@ func (r *ReplicationConfigReconciler) updateSyncInterval(labelSyncTime string) t
 	nextSyncTime := time.Duration(syncTime) * time.Minute
 
 	if nextSyncTime < r.SyncInterval {
-		log.Warnf("invalid %q label value: %v", ReplicationConfigLabelSyncTime, syncTime)
+		log.Warnf("invalid %q label value: %v, minimum: %v", ReplicationConfigLabelSyncTime, syncTime, r.SyncInterval.Minutes())
 		return r.SyncInterval
 	}
 
