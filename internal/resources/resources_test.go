@@ -20,10 +20,16 @@ func TestHasChanged(t *testing.T) {
 			input:    unstructuredData(1, nil),
 		},
 		{
-			name:     "resource spec has changed, it should return true",
+			name:     "existing resource spec has changed, it should return true",
 			changed:  true,
 			existing: unstructuredData(2, nil),
 			input:    unstructuredData(1, nil),
+		},
+		{
+			name:     "input resource spec has changed, it should return true",
+			changed:  true,
+			existing: unstructuredData(1, nil),
+			input:    unstructuredData(2, nil),
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {

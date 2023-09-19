@@ -57,10 +57,10 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	// skip reconciliation if hash is unchanged and timestamp is within sync interval
 	// reconciliation is triggered when status subresource is updated, so we need this check to avoid infinite loop
 	if rc.Status.SynchronizationHash == hash && !r.needsSync(rc.Status.SynchronizationTimestamp.Time) {
-		log.Debugf("skipping reconciliation of %q, hash %q is unchanged and changed within syncInterval window", rc.Name, hash)
+		log.Debugf("skipping reconciliation of %q, hash %q is unchanged and changed within syncInterval window, next sync %v", rc.Name, hash, r.nextSync())
 		return ctrl.Result{}, nil
 	} else {
-		log.Debugf("reconciling: hash changed: %v, outside syncInterval window: %v, next sync: %v", rc.Status.SynchronizationHash != hash, r.needsSync(rc.Status.SynchronizationTimestamp.Time), r.nextSync())
+		log.Debugf("reconciling: hash changed: %v, outside syncInterval window: %v", rc.Status.SynchronizationHash != hash, r.needsSync(rc.Status.SynchronizationTimestamp.Time))
 	}
 
 	namespaces, err := r.listNamespaces(ctx, &rc.Spec.NamespaceSelector)
@@ -167,7 +167,7 @@ func (r *ReplicationConfigReconciler) updateResource(ctx context.Context, resour
 	}
 
 	changed, err := resources.HasChanged(existing, resource)
-	log.Debugf("rescouces has changed: %v", changed)
+	log.Debugf("resource %v/%v has changed: %v", existing.GetKind(), existing.GetName(), changed)
 	if err != nil {
 		return fmt.Errorf("comparing resources: %w", err)
 	}
