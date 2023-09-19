@@ -22,17 +22,17 @@ func TestUpdateInterval(t *testing.T) {
 			expected: currentSyncInterval,
 		},
 		{
-			name:     "use custom interval",
+			name:     "use valid custom interval",
 			interval: "10",
 			expected: 10 * time.Minute,
 		},
 		{
-			name:     "use none valid custom interval",
+			name:     "use custom interval < currentSyncInterval",
 			interval: "3",
 			expected: 5 * time.Minute,
 		},
 		{
-			name:     "use none valid custom interval",
+			name:     "use none valid value for custom interval",
 			interval: "undefined",
 			expected: 5 * time.Minute,
 		},

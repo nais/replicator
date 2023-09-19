@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	ReplicationConfigLabelSyncTime = "replicationconfig.nais.io/sync-time"
+	ReplicationConfigLabelSyncInterval = "replicationconfig.nais.io/sync-interval"
 )
 
 type ReplicationConfigReconciler struct {
@@ -52,7 +52,7 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	r.SyncInterval = r.parseSyncInterval(rc.Labels[ReplicationConfigLabelSyncTime])
+	r.SyncInterval = r.parseSyncInterval(rc.Labels[ReplicationConfigLabelSyncInterval])
 
 	// skip reconciliation if hash is unchanged and timestamp is within sync interval
 	// reconciliation is triggered when status subresource is updated, so we need this check to avoid infinite loop
@@ -202,14 +202,14 @@ func (r *ReplicationConfigReconciler) parseSyncInterval(labelSyncTime string) ti
 
 	syncTime, err := strconv.Atoi(labelSyncTime)
 	if err != nil {
-		log.Errorf("unable to parse %q label: %v", ReplicationConfigLabelSyncTime, err)
+		log.Errorf("unable to parse %q label: %v", ReplicationConfigLabelSyncInterval, err)
 		return r.SyncInterval
 	}
 
 	nextSyncTime := time.Duration(syncTime) * time.Minute
 
 	if nextSyncTime < r.SyncInterval {
-		log.Warnf("invalid %q label value: %v, minimum: %v", ReplicationConfigLabelSyncTime, syncTime, r.SyncInterval.Minutes())
+		log.Warnf("invalid %q label value: %v, minimum: %v", ReplicationConfigLabelSyncInterval, syncTime, r.SyncInterval.Minutes())
 		return r.SyncInterval
 	}
 
