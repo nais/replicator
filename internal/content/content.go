@@ -1,6 +1,7 @@
 package content
 
 import (
+	b64 "encoding/base64"
 	"fmt"
 	"github.com/mitchellh/hashstructure/v2"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -68,48 +69,60 @@ func GetHash(data *unstructured.Unstructured) (ResourceContent, error) {
 }
 
 func (s *Spec) ContentHasChanged(existing *unstructured.Unstructured) (bool, error) {
-	if change, err := hasChanged(s.data, existing, s.ContentType); err != nil {
+	data := toContent(s.data, s.ContentType)
+	existingData := toContent(existing, s.ContentType)
+
+	change, err := hasChanged(data, existingData)
+	if err != nil {
 		return false, err
-	} else if change {
-		return true, nil
 	}
-	return false, nil
+	return change, nil
 }
 
 func (d *Data) ContentHasChanged(existing *unstructured.Unstructured) (bool, error) {
-	if change, err := hasChanged(d.data, existing, d.ContentType); err != nil {
+	data := toContent(d.data, d.ContentType)
+	existingData := toContent(existing, d.ContentType)
+
+	change, err := hasChanged(data, existingData)
+	if err != nil {
 		return false, err
-	} else if change {
-		return true, nil
 	}
-	return false, nil
+	return change, nil
 }
 
 func (s *StringData) ContentHasChanged(existing *unstructured.Unstructured) (bool, error) {
-	if change, err := hasChanged(s.data, existing, s.ContentType); err != nil {
-		return false, err
-	} else if change {
+	data := toContent(s.data, s.ContentType)
+	existingData := toContent(existing, DataContent)
+
+	if len(data) != len(existingData) {
 		return true, nil
 	}
-	return false, nil
+
+	change, err := hasChanged(copyToEncodedValues(data), existingData)
+	if err != nil {
+		return false, err
+	}
+	return change, nil
 }
 
 func (u *Unknown) ContentHasChanged(existing *unstructured.Unstructured) (bool, error) {
-	if change, err := hasChanged(u.data, existing, u.ContentType); err != nil {
+	data := toContent(u.data, u.ContentType)
+	existingData := toContent(existing, u.ContentType)
+
+	change, err := hasChanged(data, existingData)
+	if err != nil {
 		return false, err
-	} else if change {
-		return true, nil
 	}
-	return false, nil
+	return change, nil
 }
 
-func hasChanged(resource, existing *unstructured.Unstructured, contentType string) (bool, error) {
-	existingDataHash, err := hash(existing, contentType)
+func hasChanged(resource, existing map[string]interface{}) (bool, error) {
+	existingDataHash, err := hash(existing)
 	if err != nil {
 		return false, err
 	}
 
-	resourceDataHash, err := hash(resource, contentType)
+	resourceDataHash, err := hash(resource)
 	if err != nil {
 		return false, err
 	}
@@ -117,10 +130,23 @@ func hasChanged(resource, existing *unstructured.Unstructured, contentType strin
 	return existingDataHash != resourceDataHash, nil
 }
 
-func hash(input *unstructured.Unstructured, contentType string) (string, error) {
-	hash, err := hashstructure.Hash(input.UnstructuredContent()[contentType], hashstructure.FormatV2, nil)
+func hash(input map[string]interface{}) (string, error) {
+	hash, err := hashstructure.Hash(input, hashstructure.FormatV2, nil)
 	if err != nil {
 		return "", err
 	}
 	return fmt.Sprintf("%x", hash), nil
+}
+
+func copyToEncodedValues(resources map[string]interface{}) map[string]interface{} {
+	outputs := make(map[string]interface{}, len(resources))
+
+	for k, v := range resources {
+		outputs[k] = b64.StdEncoding.EncodeToString([]byte(v.(string)))
+	}
+	return outputs
+}
+
+func toContent(data *unstructured.Unstructured, contentType string) map[string]interface{} {
+	return data.UnstructuredContent()[contentType].(map[string]interface{})
 }
