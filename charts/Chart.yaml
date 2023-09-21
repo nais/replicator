@@ -1,5 +1,7 @@
 apiVersion: v2
 name: replicator
+sources:
+  - https://github.com/nais/replicator/tree/main/charts
 description: Replicator helm chart
 type: application
-version: 1.0.0
+version: 1.0.1
