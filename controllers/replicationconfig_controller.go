@@ -3,6 +3,8 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"k8s.io/apimachinery/pkg/api/errors"
+	"nais/replicator/internal/content"
 	"time"
 
 	"nais/replicator/internal/replicator"
@@ -10,7 +12,6 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	log "github.com/sirupsen/logrus"
 
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/client-go/tools/record"
 
@@ -81,31 +82,38 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	for _, ns := range namespaces.Items {
 		nsv := replicator.ExtractValues(ns, rc.Spec.TemplateValues.Namespace)
 
-		resources, err := replicator.RenderResources(&replicator.TemplateValues{Values: replicator.Merge(values, nsv)}, rc.Spec.Resources)
+		renderResources, err := replicator.RenderResources(&replicator.TemplateValues{Values: replicator.Merge(values, nsv)}, rc.Spec.Resources)
 		if err != nil {
 			r.Recorder.Eventf(rc, "Warning", "RenderResources", "Unable to render resources for namespace %q: %v", ns.Name, err)
 			continue
 		}
-		log.Debugf("rendered %d resources for namespace %q", len(resources), ns.Name)
+		log.Debugf("rendered %d resources for namespace %q", len(renderResources), ns.Name)
 
-		for _, resource := range resources {
-			fmt.Println("resource:", resource.GetKind(), resource.GetName())
+		for _, resource := range renderResources {
+			log.Debugf("resource: %s %s", resource.GetKind(), resource.GetName())
 			spew.Dump(resource)
 
 			resource.SetNamespace(ns.Name)
 			resource.SetOwnerReferences(ownerRef)
-			err = r.createResource(ctx, resource)
+			err = r.createUpdateResource(ctx, resource)
 			if err != nil {
-				r.Recorder.Eventf(rc, "Warning", "CreateResource", "Unable to create resource %v/%v for namespace %q: %v", resource.GetKind(), resource.GetName(), ns.Name, err)
+				r.Recorder.Eventf(rc, "Warning", "createUpdateResource", "Unable to create/update resource %v/%v for namespace %q: %v", resource.GetKind(), resource.GetName(), ns.Name, err)
 				continue
 			}
-			log.Debugf("created resource %v/%v for namespace %q", resource.GetKind(), resource.GetName(), ns.Name)
 		}
+	}
+
+	// Get the latest version of the ReplicationConfig before updating status.
+	rc = &naisiov1.ReplicationConfig{}
+	err = r.Get(ctx, req.NamespacedName, rc)
+	if err != nil {
+		return ctrl.Result{}, err
 	}
 
 	rc.Status.SynchronizationTimestamp = metav1.Now()
 	rc.Status.SynchronizationHash = hash
 	if err := r.Status().Update(ctx, rc); err != nil {
+		r.Recorder.Eventf(rc, "Warning", "UpdateStatus", "Unable to update status for %q: %v", rc.Name, err)
 		return ctrl.Result{}, err
 	}
 
@@ -134,25 +142,58 @@ func (r *ReplicationConfigReconciler) listNamespaces(ctx context.Context, ls *me
 	return namespaces, nil
 }
 
-func (r ReplicationConfigReconciler) createResource(ctx context.Context, resource *unstructured.Unstructured) error {
-	err := r.Create(ctx, resource)
-	if client.IgnoreAlreadyExists(err) != nil {
-		return fmt.Errorf("creating resource: %w", err)
+func (r *ReplicationConfigReconciler) createUpdateResource(ctx context.Context, resource *unstructured.Unstructured) error {
+	existing := &unstructured.Unstructured{}
+	existing.SetGroupVersionKind(resource.GroupVersionKind())
+	err := r.Get(ctx, client.ObjectKeyFromObject(resource), existing)
+	if client.IgnoreNotFound(err) != nil {
+		return err
 	}
-	if errors.IsAlreadyExists(err) {
-		existing := &unstructured.Unstructured{}
-		existing.SetGroupVersionKind(resource.GroupVersionKind())
-		err := r.Get(ctx, client.ObjectKeyFromObject(resource), existing)
-		if err != nil {
-			return fmt.Errorf("getting existing resource: %w", err)
-		}
-		resource.SetResourceVersion(existing.GetResourceVersion())
 
-		err = r.Update(ctx, resource)
+	if errors.IsNotFound(err) {
+		err := r.Create(ctx, resource)
+		if client.IgnoreAlreadyExists(err) != nil {
+			return err
+		}
+		log.Infof("created resource %v/%v for namespace %q", resource.GetKind(), resource.GetName(), resource.GetNamespace())
+		// should not happen
+		if errors.IsAlreadyExists(err) {
+			err = r.updateResource(ctx, resource, existing)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+		return nil
+	}
+
+	err = r.updateResource(ctx, resource, existing)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *ReplicationConfigReconciler) updateResource(ctx context.Context, resource, existing *unstructured.Unstructured) error {
+	hash, err := content.GetHash(resource)
+	if err != nil {
+		log.Warnf("unable to set resource content type: %v", err)
+	}
+
+	changed, err := hash.ContentHasChanged(existing)
+	if err != nil {
+		return fmt.Errorf("comparing resources: %w", err)
+	}
+	if changed {
+		resource.SetResourceVersion(existing.GetResourceVersion())
+		err := r.Update(ctx, resource)
 		if err != nil {
 			return fmt.Errorf("updating resource: %w", err)
 		}
+		log.Infof("updated resource %v/%v for namespace %q", resource.GetKind(), resource.GetName(), resource.GetNamespace())
+		return nil
 	}
+	log.Debugf("resource %v/%v for namespace %q is unchanged", resource.GetKind(), resource.GetName(), resource.GetNamespace())
 	return nil
 }
 
