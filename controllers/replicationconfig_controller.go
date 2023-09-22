@@ -6,6 +6,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"nais/replicator/internal/content"
+	"os"
 	"time"
 
 	"nais/replicator/internal/replicator"
@@ -91,7 +92,9 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 		for _, resource := range renderResources {
 			log.Debugf("reconciling resource %s%q", resource.GetKind(), resource.GetName())
-			spew.Dump(resource)
+			if os.Getenv("DEBUG") == "true" {
+				spew.Dump(resource)
+			}
 
 			resource.SetNamespace(ns.Name)
 			resource.SetOwnerReferences(ownerRef)
@@ -193,7 +196,7 @@ func (r *ReplicationConfigReconciler) updateResource(ctx context.Context, resour
 		log.Infof("updated resource %s%q to namespace %q", resource.GetKind(), resource.GetName(), resource.GetNamespace())
 		return nil
 	}
-	log.Infof("unchanged resource %s%q for namespace %q", resource.GetKind(), resource.GetName(), resource.GetNamespace())
+	log.Debugf("unchanged resource %s%q for namespace %q", resource.GetKind(), resource.GetName(), resource.GetNamespace())
 	return nil
 }
 
