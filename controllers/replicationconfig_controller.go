@@ -3,13 +3,13 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"github.com/davecgh/go-spew/spew"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"nais/replicator/internal/content"
 	"time"
 
 	"nais/replicator/internal/replicator"
 
-	"github.com/davecgh/go-spew/spew"
 	log "github.com/sirupsen/logrus"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -61,7 +61,7 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	log.Debugf("reconciling %q to %d namespaces\n", rc.Name, len(namespaces.Items))
+	log.Debugf("reconciling %s%q to %d namespaces\n", rc.Kind, rc.Name, len(namespaces.Items))
 
 	secrets, err := replicator.LoadSecrets(ctx, r.Client, rc)
 	if err != nil {
@@ -90,7 +90,7 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		log.Debugf("rendered %d resources for namespace %q", len(renderResources), ns.Name)
 
 		for _, resource := range renderResources {
-			log.Debugf("resource: %s %s", resource.GetKind(), resource.GetName())
+			log.Debugf("reconciling resource %s%q", resource.GetKind(), resource.GetName())
 			spew.Dump(resource)
 
 			resource.SetNamespace(ns.Name)
@@ -117,7 +117,7 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	log.Infof("finished reconciling %q to %d namespaces\n", rc.Name, len(namespaces.Items))
+	log.Infof("finished reconcile %s%q to %d namespaces\n", rc.Kind, rc.Name, len(namespaces.Items))
 
 	return ctrl.Result{}, nil
 }
@@ -175,12 +175,12 @@ func (r *ReplicationConfigReconciler) createUpdateResource(ctx context.Context, 
 }
 
 func (r *ReplicationConfigReconciler) updateResource(ctx context.Context, resource, existing *unstructured.Unstructured) error {
-	hash, err := content.GetHash(resource)
+	contentHash, err := content.GetContentHash(resource)
 	if err != nil {
 		log.Warnf("unable to set resource content type: %v", err)
 	}
 
-	changed, err := hash.ContentHasChanged(existing)
+	changed, err := contentHash.CompareTo(existing)
 	if err != nil {
 		return fmt.Errorf("comparing resources: %w", err)
 	}
@@ -190,10 +190,10 @@ func (r *ReplicationConfigReconciler) updateResource(ctx context.Context, resour
 		if err != nil {
 			return fmt.Errorf("updating resource: %w", err)
 		}
-		log.Infof("updated resource %v/%v for namespace %q", resource.GetKind(), resource.GetName(), resource.GetNamespace())
+		log.Infof("updated resource %s%q to namespace %q", resource.GetKind(), resource.GetName(), resource.GetNamespace())
 		return nil
 	}
-	log.Debugf("resource %v/%v for namespace %q is unchanged", resource.GetKind(), resource.GetName(), resource.GetNamespace())
+	log.Infof("unchanged resource %s%q for namespace %q", resource.GetKind(), resource.GetName(), resource.GetNamespace())
 	return nil
 }
 

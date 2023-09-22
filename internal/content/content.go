@@ -15,122 +15,112 @@ const (
 )
 
 type ResourceContent interface {
-	ContentHasChanged(existing *unstructured.Unstructured) (bool, error)
+	CompareTo(existing *unstructured.Unstructured) (bool, error)
 }
 
 type Spec struct {
+	contentHash string
+	contentType string
 	data        *unstructured.Unstructured
-	ContentType string
 }
 
 type Data struct {
+	contentHash string
+	contentType string
 	data        *unstructured.Unstructured
-	ContentType string
 }
 
 type StringData struct {
+	contentHash string
+	contentType string
 	data        *unstructured.Unstructured
-	ContentType string
 }
 
-type Unknown struct {
-	data        *unstructured.Unstructured
-	ContentType string
-}
-
-func GetHash(data *unstructured.Unstructured) (ResourceContent, error) {
+func GetContentHash(data *unstructured.Unstructured) (ResourceContent, error) {
 	var resourceContent ResourceContent
+	var content map[string]interface{}
 	var err error
+	var hash string
 
 	switch {
 	case data.UnstructuredContent()[SpecContent] != nil:
+		content, err = getContent(data, SpecContent)
+		hash, err = toHash(content)
+		if err != nil {
+			return nil, err
+		}
 		resourceContent = &Spec{
+			contentHash: hash,
+			contentType: SpecContent,
 			data:        data,
-			ContentType: SpecContent,
 		}
 	case data.UnstructuredContent()[DataContent] != nil:
+		content, err = getContent(data, DataContent)
+		hash, err = toHash(content)
+		if err != nil {
+			return nil, err
+		}
 		resourceContent = &Data{
+			contentHash: hash,
+			contentType: DataContent,
 			data:        data,
-			ContentType: DataContent,
 		}
 	case data.UnstructuredContent()[StringDataContent] != nil:
+		content, err = getContent(data, StringDataContent)
+		encodedValues := copyToEncodedValues(content)
+		hash, err = toHash(encodedValues)
 		resourceContent = &StringData{
+			contentHash: hash,
+			contentType: StringDataContent,
 			data:        data,
-			ContentType: StringDataContent,
 		}
 	default:
-		resourceContent = &Unknown{
-			data:        data,
-			ContentType: UnknownContent,
-		}
-		err = fmt.Errorf("resource content type not found: %v", data.UnstructuredContent())
+		_, err = getContent(data, UnknownContent)
 	}
 	return resourceContent, err
 }
 
-func (s *Spec) ContentHasChanged(existing *unstructured.Unstructured) (bool, error) {
-	data := toContent(s.data, s.ContentType)
-	existingData := toContent(existing, s.ContentType)
-
-	change, err := hasChanged(data, existingData)
+func (s *Spec) CompareTo(existing *unstructured.Unstructured) (bool, error) {
+	existingData, err := getContent(existing, s.contentType)
 	if err != nil {
 		return false, err
 	}
-	return change, nil
+	existingHash, err := toHash(existingData)
+	if err != nil {
+		return false, err
+	}
+	return hasChanged(s.contentHash, existingHash), nil
 }
 
-func (d *Data) ContentHasChanged(existing *unstructured.Unstructured) (bool, error) {
-	data := toContent(d.data, d.ContentType)
-	existingData := toContent(existing, d.ContentType)
-
-	change, err := hasChanged(data, existingData)
+func (d *Data) CompareTo(existing *unstructured.Unstructured) (bool, error) {
+	existingData, err := getContent(existing, d.contentType)
 	if err != nil {
 		return false, err
 	}
-	return change, nil
+	existingHash, err := toHash(existingData)
+	if err != nil {
+		return false, err
+	}
+	return hasChanged(d.contentHash, existingHash), nil
 }
 
-func (s *StringData) ContentHasChanged(existing *unstructured.Unstructured) (bool, error) {
-	data := toContent(s.data, s.ContentType)
-	existingData := toContent(existing, DataContent)
-
-	if len(data) != len(existingData) {
-		return true, nil
-	}
-
-	change, err := hasChanged(copyToEncodedValues(data), existingData)
+func (s *StringData) CompareTo(existing *unstructured.Unstructured) (bool, error) {
+	existingData, err := getContent(existing, DataContent)
 	if err != nil {
 		return false, err
 	}
-	return change, nil
+	existingHash, err := toHash(existingData)
+	if err != nil {
+		return false, err
+	}
+	return hasChanged(s.contentHash, existingHash), nil
 }
 
-func (u *Unknown) ContentHasChanged(existing *unstructured.Unstructured) (bool, error) {
-	data := toContent(u.data, u.ContentType)
-	existingData := toContent(existing, u.ContentType)
-
-	change, err := hasChanged(data, existingData)
-	if err != nil {
-		return false, err
-	}
-	return change, nil
+func hasChanged(resourceHash, existingHash string) bool {
+	return resourceHash != existingHash
 }
 
-func hasChanged(resource, existing map[string]interface{}) (bool, error) {
-	existingDataHash, err := hash(existing)
-	if err != nil {
-		return false, err
-	}
-
-	resourceDataHash, err := hash(resource)
-	if err != nil {
-		return false, err
-	}
-
-	return existingDataHash != resourceDataHash, nil
-}
-
-func hash(input map[string]interface{}) (string, error) {
+func toHash(input map[string]interface{}) (string, error) {
 	hash, err := hashstructure.Hash(input, hashstructure.FormatV2, nil)
 	if err != nil {
 		return "", err
@@ -147,6 +137,10 @@ func copyToEncodedValues(resources map[string]interface{}) map[string]interface{
 	return outputs
 }
 
-func toContent(data *unstructured.Unstructured, contentType string) map[string]interface{} {
-	return data.UnstructuredContent()[contentType].(map[string]interface{})
+func getContent(data *unstructured.Unstructured, contentType string) (map[string]interface{}, error) {
+	if data.UnstructuredContent()[contentType] == nil {
+		return nil, fmt.Errorf("content type %q not found with data %v", contentType, data.UnstructuredContent())
+	}
+
+	return data.UnstructuredContent()[contentType].(map[string]interface{}), nil
 }

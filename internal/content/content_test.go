@@ -21,7 +21,7 @@ func TestContentHasChanged(t *testing.T) {
 			existingData: unstructuredData(UnknownContent, map[string]interface{}{
 				"key": "value",
 			}),
-			rcInput: unstructuredData("some-data", map[string]interface{}{
+			rcInput: unstructuredData("some-new-content", map[string]interface{}{
 				"key": "value",
 			}),
 		},
@@ -116,13 +116,13 @@ func TestContentHasChanged(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			getHash, err := GetHash(tt.rcInput)
+			getHash, err := GetContentHash(tt.rcInput)
 			if tt.expectedError {
 				assert.Error(t, err)
 				return
 			}
 
-			changed, err := getHash.ContentHasChanged(tt.existingData)
+			changed, err := getHash.CompareTo(tt.existingData)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedChange, changed)
 		})
