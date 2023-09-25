@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/davecgh/go-spew/spew"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"nais/replicator/internal/content"
 	"os"
 	"time"
@@ -147,15 +148,12 @@ func (r *ReplicationConfigReconciler) listNamespaces(ctx context.Context, ls *me
 func (r *ReplicationConfigReconciler) createUpdateResource(ctx context.Context, resource *unstructured.Unstructured) error {
 	existing := &unstructured.Unstructured{}
 	existing.SetGroupVersionKind(resource.GroupVersionKind())
-	toCreate := false
 	err := r.Get(ctx, client.ObjectKeyFromObject(resource), existing)
-	if client.IgnoreNotFound(err) == nil {
-		toCreate = true
-	} else if err != nil {
+	if client.IgnoreNotFound(err) != nil {
 		return err
 	}
 
-	if toCreate {
+	if errors.IsNotFound(err) {
 		err := r.Create(ctx, resource)
 		if client.IgnoreAlreadyExists(err) != nil {
 			return err
