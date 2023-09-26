@@ -116,15 +116,18 @@ func TestContentHasChanged(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			getHash, err := GetContentHash(tt.rcInput)
+			rcContent, err := Get(tt.rcInput)
 			if tt.expectedError {
 				assert.Error(t, err)
 				return
 			}
-
-			changed, err := getHash.CompareTo(tt.existingData)
-			assert.NoError(t, err)
-			assert.Equal(t, tt.expectedChange, changed)
+			existingContent, err := Get(tt.existingData)
+			if tt.expectedError {
+				assert.Error(t, err)
+				return
+			}
+			change := rcContent.Equals(existingContent.Hash())
+			assert.Equal(t, tt.expectedChange, !change)
 		})
 	}
 }

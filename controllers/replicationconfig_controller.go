@@ -170,16 +170,17 @@ func (r *ReplicationConfigReconciler) createUpdateResource(ctx context.Context, 
 }
 
 func (r *ReplicationConfigReconciler) updateResource(ctx context.Context, resource, existing *unstructured.Unstructured) error {
-	contentHash, err := content.GetContentHash(resource)
+	resourceContent, err := content.Get(resource)
 	if err != nil {
 		log.Warnf("unable to set resource content type: %v", err)
 	}
 
-	changed, err := contentHash.CompareTo(existing)
+	existingContent, err := content.Get(existing)
 	if err != nil {
-		return fmt.Errorf("comparing resources: %w", err)
+		log.Warnf("unable to set existing content type: %v", err)
 	}
-	if changed {
+
+	if !resourceContent.Equals(existingContent.Hash()) {
 		resource.SetResourceVersion(existing.GetResourceVersion())
 		err := r.Update(ctx, resource)
 		if err != nil {
