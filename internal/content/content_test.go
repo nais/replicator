@@ -126,8 +126,8 @@ func TestContentHasChanged(t *testing.T) {
 				assert.Error(t, err)
 				return
 			}
-			change := rcContent.Equals(existingContent.Hash())
-			assert.Equal(t, tt.expectedChange, !change)
+
+			assert.Equal(t, tt.expectedChange, !rcContent.Equals(existingContent))
 		})
 	}
 }

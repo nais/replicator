@@ -14,7 +14,7 @@ const (
 )
 
 type ResourceContent interface {
-	Equals(hash string) bool
+	Equals(content ResourceContent) bool
 	Hash() string
 }
 

@@ -180,7 +180,7 @@ func (r *ReplicationConfigReconciler) updateResource(ctx context.Context, resour
 		log.Warnf("unable to set existing content type: %v", err)
 	}
 
-	if !resourceContent.Equals(existingContent.Hash()) {
+	if !resourceContent.Equals(existingContent) {
 		resource.SetResourceVersion(existing.GetResourceVersion())
 		err := r.Update(ctx, resource)
 		if err != nil {

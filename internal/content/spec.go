@@ -22,8 +22,8 @@ func NewSpec(data *unstructured.Unstructured) (*Spec, error) {
 	}, nil
 }
 
-func (s *Spec) Equals(existingHash string) bool {
-	return s.contentHash == existingHash
+func (s *Spec) Equals(content ResourceContent) bool {
+	return s.contentHash == content.Hash()
 }
 
 func (s *Spec) Hash() string {

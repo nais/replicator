@@ -22,8 +22,8 @@ func NewUnknown(data *unstructured.Unstructured) (*Unknown, error) {
 	}, nil
 }
 
-func (u *Unknown) Equals(existingHash string) bool {
-	return u.contentHash == existingHash
+func (u *Unknown) Equals(content ResourceContent) bool {
+	return u.contentHash == content.Hash()
 }
 
 func (u *Unknown) Hash() string {

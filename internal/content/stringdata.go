@@ -25,8 +25,8 @@ func NewStringData(data *unstructured.Unstructured) (*StringData, error) {
 	}, nil
 }
 
-func (s *StringData) Equals(existingHash string) bool {
-	return s.contentHash == existingHash
+func (s *StringData) Equals(content ResourceContent) bool {
+	return s.contentHash == content.Hash()
 }
 
 func (s *StringData) Hash() string {
