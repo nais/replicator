@@ -180,16 +180,17 @@ func (r *ReplicationConfigReconciler) updateResource(ctx context.Context, resour
 		log.Warnf("unable to set existing content type: %v", err)
 	}
 
-	if !resourceContent.Equals(existingContent) {
-		resource.SetResourceVersion(existing.GetResourceVersion())
-		err := r.Update(ctx, resource)
-		if err != nil {
-			return fmt.Errorf("updating resource: %w", err)
-		}
-		log.Infof("updated resource %s%q to namespace %q", resource.GetKind(), resource.GetName(), resource.GetNamespace())
+	if resourceContent.Equals(existingContent) {
+		log.Debugf("unchanged resource %s%q for namespace %q", resource.GetKind(), resource.GetName(), resource.GetNamespace())
 		return nil
 	}
-	log.Debugf("unchanged resource %s%q for namespace %q", resource.GetKind(), resource.GetName(), resource.GetNamespace())
+
+	resource.SetResourceVersion(existing.GetResourceVersion())
+	err = r.Update(ctx, resource)
+	if err != nil {
+		return fmt.Errorf("updating resource: %w", err)
+	}
+	log.Infof("updated resource %s%q to namespace %q", resource.GetKind(), resource.GetName(), resource.GetNamespace())
 	return nil
 }
 
