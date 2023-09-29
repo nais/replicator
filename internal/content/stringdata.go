@@ -7,22 +7,26 @@ import (
 
 type StringData struct {
 	contentHash string
-	contentData map[string]interface{}
 	annotations string
 	labels      string
 }
 
 func NewStringData(data *unstructured.Unstructured) (*StringData, error) {
 	content, err := getContent(data, StringDataContent)
-	contentHash, err := toHash(copyToEncodedValues(content))
+	contentHash, err := toHash(withEncodedValues(content))
+	if err != nil {
+		return nil, err
+	}
 	annotationsHash, err := toHash(data.GetAnnotations())
+	if err != nil {
+		return nil, err
+	}
 	labelsHash, err := toHash(data.GetLabels())
 	if err != nil {
 		return nil, err
 	}
 	return &StringData{
 		contentHash: contentHash,
-		contentData: content,
 		annotations: annotationsHash,
 		labels:      labelsHash,
 	}, nil
@@ -46,7 +50,7 @@ func (s *StringData) Labels() string {
 	return s.labels
 }
 
-func copyToEncodedValues(data map[string]interface{}) map[string]interface{} {
+func withEncodedValues(data map[string]interface{}) map[string]interface{} {
 	outputs := make(map[string]interface{}, len(data))
 
 	for k, v := range data {

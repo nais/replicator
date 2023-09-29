@@ -14,36 +14,22 @@ func TestContentHasChanged(t *testing.T) {
 		rcInput        *unstructured.Unstructured
 		expectedChange bool
 		expectedError  bool
+		labels         bool
+		annotations    bool
 	}{
-		{
-			name:          "'unknown' should return fail",
-			expectedError: true,
-			existingData: unstructuredData(UnknownContent, map[string]interface{}{
-				"key": "value",
-			},
-				nil,
-				nil,
-			),
-			rcInput: unstructuredData("some-new-content", map[string]interface{}{
-				"key": "value",
-			},
-				nil,
-				nil,
-			),
-		},
 		{
 			name: "'stringData' has not changed, it should return false",
 			existingData: unstructuredData(DataContent, map[string]interface{}{
 				"key": base64.StdEncoding.EncodeToString([]byte("my-value")),
 			},
-				nil,
-				nil,
+				false,
+				false,
 			),
 			rcInput: unstructuredData(StringDataContent, map[string]interface{}{
 				"key": "my-value",
 			},
-				nil,
-				nil,
+				false,
+				false,
 			),
 		},
 		{
@@ -53,14 +39,14 @@ func TestContentHasChanged(t *testing.T) {
 				"key":       base64.StdEncoding.EncodeToString([]byte("my-value")),
 				"other-key": base64.StdEncoding.EncodeToString([]byte("my-other-value")),
 			},
-				nil,
-				nil,
+				false,
+				false,
 			),
 			rcInput: unstructuredData(StringDataContent, map[string]interface{}{
 				"key": "my-value",
 			},
-				nil,
-				nil,
+				false,
+				false,
 			),
 		},
 		{
@@ -69,14 +55,14 @@ func TestContentHasChanged(t *testing.T) {
 			existingData: unstructuredData(DataContent, map[string]interface{}{
 				"key": base64.StdEncoding.EncodeToString([]byte("my-value")),
 			},
-				nil,
-				nil,
+				false,
+				false,
 			),
 			rcInput: unstructuredData(StringDataContent, map[string]interface{}{
 				"key": "otherValue",
 			},
-				nil,
-				nil,
+				false,
+				false,
 			),
 		},
 		{
@@ -84,14 +70,14 @@ func TestContentHasChanged(t *testing.T) {
 			existingData: unstructuredData(DataContent, map[string]interface{}{
 				"key": "value",
 			},
-				nil,
-				nil,
+				false,
+				false,
 			),
 			rcInput: unstructuredData(DataContent, map[string]interface{}{
 				"key": "value",
 			},
-				nil,
-				nil,
+				false,
+				false,
 			),
 		},
 		{
@@ -100,13 +86,14 @@ func TestContentHasChanged(t *testing.T) {
 			existingData: unstructuredData(DataContent, map[string]interface{}{
 				"other-key": "value",
 			},
-				nil,
-				nil),
+				false,
+				false,
+			),
 			rcInput: unstructuredData(DataContent, map[string]interface{}{
 				"key": "value",
 			},
-				nil,
-				nil,
+				false,
+				false,
 			),
 		},
 		{
@@ -115,14 +102,14 @@ func TestContentHasChanged(t *testing.T) {
 			existingData: unstructuredData(DataContent, map[string]interface{}{
 				"other-key": "value",
 			},
-				nil,
-				nil,
+				false,
+				false,
 			),
 			rcInput: unstructuredData(DataContent, map[string]interface{}{
 				"key": "value",
 			},
-				nil,
-				nil,
+				false,
+				false,
 			),
 		},
 		{
@@ -130,14 +117,14 @@ func TestContentHasChanged(t *testing.T) {
 			existingData: unstructuredData(SpecContent, map[string]interface{}{
 				"replicas": "1",
 			},
-				nil,
-				nil,
+				false,
+				false,
 			),
 			rcInput: unstructuredData(SpecContent, map[string]interface{}{
 				"replicas": "1",
 			},
-				nil,
-				nil,
+				false,
+				false,
 			),
 		},
 		{
@@ -146,14 +133,14 @@ func TestContentHasChanged(t *testing.T) {
 			existingData: unstructuredData(SpecContent, map[string]interface{}{
 				"replicas": "2",
 			},
-				nil,
-				nil,
+				false,
+				false,
 			),
 			rcInput: unstructuredData(SpecContent, map[string]interface{}{
 				"replicas": "1",
 			},
-				nil,
-				nil,
+				false,
+				false,
 			),
 		},
 		{
@@ -162,78 +149,64 @@ func TestContentHasChanged(t *testing.T) {
 			existingData: unstructuredData(SpecContent, map[string]interface{}{
 				"replicas": "1",
 			},
-				nil,
-				nil,
+				false,
+				false,
 			),
 			rcInput: unstructuredData(SpecContent, map[string]interface{}{
 				"replicas": "2",
 			},
-				nil,
-				nil,
+				false,
+				false,
 			),
 		},
 		{
 			name:           "rcInput annotations has changed, it should return true",
 			expectedChange: true,
-			existingData: unstructuredData(SpecContent, map[string]interface{}{
-				"replicas": "1",
-			},
-				nil,
-				nil,
+			existingData: unstructuredData(SpecContent, map[string]interface{}{},
+				false,
+				false,
 			),
-			rcInput: unstructuredData(SpecContent, map[string]interface{}{
-				"replicas": "2",
-			},
-				map[string]string{"my-annotation": "my-value"},
-				nil,
+			rcInput: unstructuredData(SpecContent, map[string]interface{}{},
+				true,
+				false,
 			),
 		},
-
 		{
 			name:           "existingData annotations has changed, it should return true",
 			expectedChange: true,
-			existingData: unstructuredData(SpecContent, map[string]interface{}{
-				"replicas": "1",
-			},
-				map[string]string{"my-annotation": "my-value"},
-				nil,
+			existingData: unstructuredData(SpecContent, map[string]interface{}{},
+				true,
+				false,
 			),
-			rcInput: unstructuredData(SpecContent, map[string]interface{}{
-				"replicas": "2",
-			}, nil, nil,
+			rcInput: unstructuredData(SpecContent, map[string]interface{}{},
+				false,
+				false,
 			),
 		},
 
 		{
 			name:           "rcInput labels has changed, it should return true",
 			expectedChange: true,
-			existingData: unstructuredData(SpecContent, map[string]interface{}{
-				"replicas": "1",
-			},
-				nil,
-				map[string]string{"my-label": "my-value"},
+			existingData: unstructuredData(SpecContent, map[string]interface{}{},
+				false,
+				false,
 			),
-			rcInput: unstructuredData(SpecContent, map[string]interface{}{
-				"replicas": "2",
-			},
-				nil,
-				nil,
+			rcInput: unstructuredData(SpecContent, map[string]interface{}{},
+				false,
+				true,
 			),
 		},
 
 		{
 			name:           "existingData labels has changed, it should return true",
 			expectedChange: true,
-			existingData: unstructuredData(SpecContent, map[string]interface{}{
-				"replicas": "1",
-			},
-				nil,
-				nil,
+			existingData: unstructuredData(SpecContent, map[string]interface{}{},
+				false,
+				true,
 			),
-			rcInput: unstructuredData(SpecContent, map[string]interface{}{
-				"replicas": "2",
-			}, nil,
-				map[string]string{"my-label": "my-value"},
+			rcInput: unstructuredData(SpecContent, map[string]interface{}{},
+				false,
+				false,
 			),
 		},
 	} {
@@ -253,17 +226,33 @@ func TestContentHasChanged(t *testing.T) {
 	}
 }
 
-func unstructuredData(
-	contentKey string,
-	contentValues map[string]interface{},
-	annotations map[string]string,
-	labels map[string]string) *unstructured.Unstructured {
+func unstructuredData(contentKey string, contentValues map[string]interface{}, annotations bool, labels bool) *unstructured.Unstructured {
+	if annotations {
+		return &unstructured.Unstructured{
+			Object: map[string]interface{}{
+				"metadata": map[string]interface{}{
+					"name":        "test",
+					"annotations": map[string]interface{}{"my-annotation": "my-value"},
+				},
+				contentKey: contentValues,
+			},
+		}
+	}
+	if labels {
+		return &unstructured.Unstructured{
+			Object: map[string]interface{}{
+				"metadata": map[string]interface{}{
+					"name":   "test",
+					"labels": map[string]interface{}{"my-label": "my-value"},
+				},
+				contentKey: contentValues,
+			},
+		}
+	}
 	return &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"metadata": map[string]interface{}{
-				"name":        "test",
-				"annotations": annotations,
-				"labels":      labels,
+				"name": "test",
 			},
 			contentKey: contentValues,
 		},

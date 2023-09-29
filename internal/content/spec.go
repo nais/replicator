@@ -1,25 +1,37 @@
 package content
 
-import "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+import (
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+)
 
 type Spec struct {
 	contentHash string
-	contentData map[string]interface{}
 	annotations string
 	labels      string
 }
 
 func NewSpec(data *unstructured.Unstructured) (*Spec, error) {
 	content, err := getContent(data, SpecContent)
+	if err != nil {
+		return nil, err
+	}
 	contentHash, err := toHash(content)
+	if err != nil {
+		return nil, err
+	}
 	annotationsHash, err := toHash(data.GetAnnotations())
+	if err != nil {
+		return nil, err
+	}
 	labelsHash, err := toHash(data.GetLabels())
+	if err != nil {
+		return nil, err
+	}
 	if err != nil {
 		return nil, err
 	}
 	return &Spec{
 		contentHash: contentHash,
-		contentData: content,
 		annotations: annotationsHash,
 		labels:      labelsHash,
 	}, nil
