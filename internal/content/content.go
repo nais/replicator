@@ -8,12 +8,13 @@ import (
 
 const (
 	SpecContent       = "spec"
-	UnknownContent    = "unknown"
 	DataContent       = "data"
 	StringDataContent = "stringData"
 )
 
 type ResourceContent interface {
+	Annotations() string
+	Labels() string
 	Equals(content ResourceContent) bool
 	Hash() string
 }
@@ -27,11 +28,11 @@ func Get(data *unstructured.Unstructured) (ResourceContent, error) {
 	case data.UnstructuredContent()[StringDataContent] != nil:
 		return NewStringData(data)
 	default:
-		return NewUnknown(data)
+		return nil, fmt.Errorf("no content found in %v", data.UnstructuredContent())
 	}
 }
 
-func toHash(input map[string]interface{}) (string, error) {
+func toHash(input any) (string, error) {
 	hash, err := hashstructure.Hash(input, hashstructure.FormatV2, nil)
 	if err != nil {
 		return "", err
@@ -40,8 +41,9 @@ func toHash(input map[string]interface{}) (string, error) {
 }
 
 func getContent(data *unstructured.Unstructured, contentType string) (map[string]interface{}, error) {
-	if data.UnstructuredContent()[contentType] == nil {
+	content := data.UnstructuredContent()[contentType]
+	if content == nil {
 		return nil, fmt.Errorf("content type %q not found with data %v", contentType, data.UnstructuredContent())
 	}
-	return data.UnstructuredContent()[contentType].(map[string]interface{}), nil
+	return content.(map[string]interface{}), nil
 }

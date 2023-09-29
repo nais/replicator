@@ -1,10 +1,13 @@
 package content
 
-import "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+import (
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+)
 
 type Spec struct {
 	contentHash string
-	contentData map[string]interface{}
+	annotations string
+	labels      string
 }
 
 func NewSpec(data *unstructured.Unstructured) (*Spec, error) {
@@ -12,20 +15,42 @@ func NewSpec(data *unstructured.Unstructured) (*Spec, error) {
 	if err != nil {
 		return nil, err
 	}
-	hash, err := toHash(content)
+	contentHash, err := toHash(content)
+	if err != nil {
+		return nil, err
+	}
+	annotationsHash, err := toHash(data.GetAnnotations())
+	if err != nil {
+		return nil, err
+	}
+	labelsHash, err := toHash(data.GetLabels())
+	if err != nil {
+		return nil, err
+	}
 	if err != nil {
 		return nil, err
 	}
 	return &Spec{
-		contentHash: hash,
-		contentData: content,
+		contentHash: contentHash,
+		annotations: annotationsHash,
+		labels:      labelsHash,
 	}, nil
 }
 
 func (s *Spec) Equals(content ResourceContent) bool {
-	return s.contentHash == content.Hash()
+	return s.labels == content.Labels() &&
+		s.annotations == content.Annotations() &&
+		s.contentHash == content.Hash()
+}
+
+func (s *Spec) Annotations() string {
+	return s.annotations
 }
 
 func (s *Spec) Hash() string {
 	return s.contentHash
+}
+
+func (s *Spec) Labels() string {
+	return s.labels
 }
