@@ -14,6 +14,8 @@ const (
 )
 
 type ResourceContent interface {
+	Annotations() string
+	Labels() string
 	Equals(content ResourceContent) bool
 	Hash() string
 }
@@ -31,7 +33,7 @@ func Get(data *unstructured.Unstructured) (ResourceContent, error) {
 	}
 }
 
-func toHash(input map[string]interface{}) (string, error) {
+func toHash(input any) (string, error) {
 	hash, err := hashstructure.Hash(input, hashstructure.FormatV2, nil)
 	if err != nil {
 		return "", err
