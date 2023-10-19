@@ -3,6 +3,8 @@ package controllers
 import (
 	"context"
 	"fmt"
+	log "github.com/sirupsen/logrus"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"net/http"
 	"os"
 
@@ -25,7 +27,7 @@ type ReplicatorValidator struct {
 func (v *ReplicatorValidator) Handle(ctx context.Context, req admission.Request) admission.Response {
 	rc := &naisiov1.ReplicationConfig{}
 
-	println("Validating ReplicationConfig...")
+	log.Info("Validating ReplicationConfig...")
 	err := v.decoder.Decode(req, rc)
 	if err != nil {
 		return admission.Errored(http.StatusBadRequest, err)
@@ -80,9 +82,21 @@ func (v *ReplicatorValidator) validateReplicationConfig(rc *naisiov1.Replication
 func (v *ReplicatorValidator) validateValuesExists(ctx context.Context, rc *naisiov1.ReplicationConfig) error {
 	for _, s := range rc.Spec.TemplateValues.Secrets {
 		var secret v1.Secret
-		if err := v.Client.Get(ctx, client.ObjectKey{Name: s.Name, Namespace: os.Getenv("POD_NAMESPACE")}, &secret); err != nil {
-			return fmt.Errorf("values references non-existing secret '%s': %w", s.Name, err)
+		err := v.Client.Get(ctx, client.ObjectKey{Name: s.Name, Namespace: os.Getenv("POD_NAMESPACE")}, &secret)
+		if err == nil {
+			continue
 		}
+
+		if apierrors.IsNotFound(err) {
+			if s.Validate {
+				return fmt.Errorf("values references non-existing secret '%s'", s.Name)
+			}
+
+			log.Debugf("secret '%s' not found; ignoring error...", s.Name)
+			continue
+		}
+
+		return fmt.Errorf("getting secret '%s': %w", s.Name, err)
 	}
 
 	return nil

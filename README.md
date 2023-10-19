@@ -35,6 +35,8 @@ spec:
     secrets:
       - name: secret-containing-value
       - name: secret-containing-tls-cert
+      - name: secret-that-doesnt-exist-yet
+        validate: false
     namespace:
       labels:
         - team

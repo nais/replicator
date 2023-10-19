@@ -2,9 +2,10 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/davecgh/go-spew/spew"
-	"k8s.io/apimachinery/pkg/api/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"nais/replicator/internal/content"
 	"os"
 	"time"
@@ -66,6 +67,12 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	secrets, err := replicator.LoadSecrets(ctx, r.Client, rc)
 	if err != nil {
+		if errors.Is(err, replicator.EventuallyConsistentSecretError) {
+			after := 5 * time.Second
+			log.Debugf("%v; requeuing after %s...", err, after)
+
+			return ctrl.Result{RequeueAfter: after}, nil
+		}
 		return ctrl.Result{}, err
 	}
 
@@ -153,7 +160,7 @@ func (r *ReplicationConfigReconciler) createUpdateResource(ctx context.Context, 
 		return err
 	}
 
-	if errors.IsNotFound(err) {
+	if apierrors.IsNotFound(err) {
 		err := r.Create(ctx, resource)
 		if client.IgnoreAlreadyExists(err) != nil {
 			return err
