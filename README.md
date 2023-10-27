@@ -68,4 +68,12 @@ spec:
 ```
 
 ## Force reconciliation of resource
-If you want to trigger a reconciliation of a ReplicationConfig you can patch the `ReplicationConfig` resource, removing the `status.synchronizationHash` field using the command: `kubectl patch repconf <name> -p '[{"op": "remove", "path": "/status/synchronizationHash"}]' --type=json`. 
+
+If you want to trigger a reconciliation of a ReplicationConfig, patch the `ReplicationConfig` resource and remove the `status.synchronizationHash` field using this command:
+
+```shell
+kubectl patch repconf <name> \
+  --type=json \
+  --subresource=status \
+  -p '[{"op": "remove", "path": "/status/synchronizationHash"}]'
+```
