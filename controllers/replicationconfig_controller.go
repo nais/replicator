@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/davecgh/go-spew/spew"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -67,12 +66,6 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	secrets, err := replicator.LoadSecrets(ctx, r.Client, rc)
 	if err != nil {
-		if errors.Is(err, replicator.EventuallyConsistentSecretError) {
-			after := 5 * time.Second
-			log.Debugf("%v; requeuing after %s...", err, after)
-
-			return ctrl.Result{RequeueAfter: after}, nil
-		}
 		return ctrl.Result{}, err
 	}
 
