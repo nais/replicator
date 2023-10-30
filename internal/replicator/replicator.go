@@ -2,7 +2,9 @@ package replicator
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"os"
 	"strings"
 
@@ -14,6 +16,8 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
+
+var EventuallyConsistentSecretError = errors.New("eventually consistent secret")
 
 type TemplateValues struct {
 	Values map[string]string
@@ -69,6 +73,9 @@ func LoadSecrets(ctx context.Context, c client.Client, rc *naisiov1.ReplicationC
 
 		var secret v1.Secret
 		if err := c.Get(ctx, client.ObjectKey{Name: s.Name, Namespace: os.Getenv("POD_NAMESPACE")}, &secret); err != nil {
+			if apierrors.IsNotFound(err) && !s.Validate {
+				return nil, errors.Join(EventuallyConsistentSecretError, err)
+			}
 			return nil, err
 		}
 

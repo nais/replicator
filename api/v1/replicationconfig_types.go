@@ -13,6 +13,11 @@ type ReplicationConfigSpec struct {
 
 type Secret struct {
 	Name string `json:"name,omitempty"`
+	// Validate checks that the secret exists before the ReplicationConfig is accepted.
+	// Setting this to false explicitly marks the secret as eventually consistent during reconciliation for retry.
+	// +kubebuilder:default=true
+	// +kubebuilder:validation:Optional
+	Validate bool `json:"validate,omitempty"`
 }
 
 type Resource struct {

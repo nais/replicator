@@ -110,6 +110,13 @@ spec:
                       properties:
                         name:
                           type: string
+                        validate:
+                          default: true
+                          description: Validate checks that the secret exists before
+                            the ReplicationConfig is accepted. Setting this to false
+                            explicitly marks the secret as eventually consistent during
+                            reconciliation for retry.
+                          type: boolean
                       type: object
                     type: array
                   values:
