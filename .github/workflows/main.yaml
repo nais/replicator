@@ -7,6 +7,16 @@ env:
   NAME: replicator
   IMAGE_REPOSITORY: oci://europe-north1-docker.pkg.dev/nais-io/nais
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ">=1.20.5"
+          cache-dependency-path: ./go.sum
+      - run: make test
   build_push:
     outputs:
       version: ${{ steps.build-push-sign.outputs.version }}
@@ -15,6 +25,7 @@ jobs:
       id-token: "write"
     name: Build and push
     runs-on: ubuntu-latest
+    needs: test
     steps:
       - uses: actions/checkout@v3.5.3
       - uses: nais/platform-build-push-sign@main
