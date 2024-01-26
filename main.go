@@ -63,7 +63,7 @@ func main() {
 	var enableWebhooks bool
 	var debug bool
 	var interval time.Duration
-	flag.StringVar(&metricsAddr, "metrics-bind-address", ":9443", "The address the metric endpoint binds to.")
+	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
@@ -100,6 +100,9 @@ func main() {
 		Cache: cache.Options{
 			SyncPeriod: &interval,
 		},
+		WebhookServer: webhook.NewServer(webhook.Options{
+			Port: 9443,
+		}),
 	})
 	if err != nil {
 		log.Errorf("unable to start manager %v", err)
