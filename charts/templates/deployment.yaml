@@ -31,7 +31,7 @@ spec:
         app: {{ .Release.Name }}
       {{- include "replicator.selectorLabels" . | nindent 8 }}
       annotations:
-        kubectl.kubernetes.io/default-container: manager
+        kubectl.kubernetes.io/default-container: replicator
     spec:
       containers:
       - args:
@@ -56,7 +56,7 @@ spec:
             port: 8081
           initialDelaySeconds: 15
           periodSeconds: 20
-        name: manager
+        name: replicator
         ports:
         - containerPort: 9443
           name: webhook-server
