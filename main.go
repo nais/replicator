@@ -122,7 +122,7 @@ func main() {
 	if enableWebhooks {
 		log.Infof("webhooks enabled, registering webhook server at /validate-replicationconfig")
 		ctrl := controllers.NewReplicatorValidator(mgr)
-		mgr.GetWebhookServer().Register("/validate-rerplicationconfig", &webhook.Admission{Handler: ctrl})
+		mgr.GetWebhookServer().Register("/validate-replicationconfig", &webhook.Admission{Handler: ctrl})
 	}
 
 	//+kubebuilder:scaffold:builder
