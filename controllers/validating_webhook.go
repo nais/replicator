@@ -3,16 +3,18 @@ package controllers
 import (
 	"context"
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"net/http"
 	"os"
+
+	log "github.com/sirupsen/logrus"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	naisiov1 "nais/replicator/api/v1"
 	"nais/replicator/internal/replicator"
 	"nais/replicator/internal/template"
 
 	v1 "k8s.io/api/core/v1"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
@@ -22,6 +24,10 @@ import (
 type ReplicatorValidator struct {
 	Client  client.Client
 	decoder *admission.Decoder
+}
+
+func NewReplicatorValidator(mgr ctrl.Manager) *ReplicatorValidator {
+	return &ReplicatorValidator{Client: mgr.GetClient(), decoder: admission.NewDecoder(mgr.GetScheme())}
 }
 
 func (v *ReplicatorValidator) Handle(ctx context.Context, req admission.Request) admission.Response {
@@ -37,15 +43,6 @@ func (v *ReplicatorValidator) Handle(ctx context.Context, req admission.Request)
 	}
 
 	return admission.Allowed("")
-}
-
-// replicatorValidator implements admission.DecoderInjector.
-// A decoder will be automatically injected.
-
-// InjectDecoder injects the decoder.
-func (v *ReplicatorValidator) InjectDecoder(d *admission.Decoder) error {
-	v.decoder = d
-	return nil
 }
 
 func (v *ReplicatorValidator) validateReplicationConfig(rc *naisiov1.ReplicationConfig) error {
