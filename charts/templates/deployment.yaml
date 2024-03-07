@@ -18,9 +18,9 @@ metadata:
     app.kubernetes.io/part-of: replicator
     control-plane: controller-manager
   {{- include "replicator.labels" . | nindent 4 }}
-  {{ - if .Values.deploymentAnnotations }}
-  annotations: {{ - toYaml .Values.deploymentAnnotations | nindent 4 }}
-  {{ - end }}
+  {{- if .Values.deploymentAnnotations }}
+  annotations: {{- toYaml .Values.deploymentAnnotations | nindent 4 }}
+  {{- end }}
 spec:
   replicas: {{ .Values.replicas }}
   selector:
