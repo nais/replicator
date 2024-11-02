@@ -3,11 +3,13 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"nais/replicator/internal/content"
 	"os"
 	"time"
+
+	"nais/replicator/internal/content"
+
+	"github.com/davecgh/go-spew/spew"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	"nais/replicator/internal/replicator"
 
@@ -86,8 +88,9 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		renderResources, err := replicator.RenderResources(&replicator.TemplateValues{Values: replicator.Merge(values, nsv)}, rc.Spec.Resources)
 		if err != nil {
 			r.Recorder.Eventf(rc, "Warning", "RenderResources", "Unable to render resources for namespace %q: %v", ns.Name, err)
-			continue
+			return ctrl.Result{}, err
 		}
+
 		log.Debugf("rendered %d resources for namespace %q", len(renderResources), ns.Name)
 
 		for _, resource := range renderResources {
@@ -101,7 +104,7 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			err = r.createUpdateResource(ctx, resource)
 			if err != nil {
 				r.Recorder.Eventf(rc, "Warning", "createUpdateResource", "Unable to create/update resource %v/%v for namespace %q: %v", resource.GetKind(), resource.GetName(), ns.Name, err)
-				continue
+				return ctrl.Result{}, err
 			}
 		}
 	}
