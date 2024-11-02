@@ -1,6 +1,6 @@
 # replicator
 
-Kubernetes operator that replicates resources, with templating functionality to namespaces matching the provided label selector
+Kubernetes operator that replicates templated resources to namespaces matching the label selector.
 
 ## Templating
 
