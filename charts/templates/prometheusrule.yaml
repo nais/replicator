@@ -1,0 +1,20 @@
+apiVersion: "monitoring.coreos.com/v1"
+kind: PrometheusRule
+metadata:
+  name: {{ include "replicator.fullname" . }}-alerts
+  labels:
+    {{ include "replicator.labels" . | nindent 4 }}
+spec:
+  groups:
+    - name: "replicator"
+      rules:
+        - alert: replicator reconcile failing
+          expr: sum(increase(controller_runtime_reconcile_errors_total{controller="replicationconfig"}[5m])) > 0
+          for: 5m
+          annotations:
+            consequence: Resources may not be replicated into target namespaces
+            action: "Check the logs: `kubectl logs -n {{ .Release.Namespace }} deploy/{{ include "replicator.fullname" . }}`"
+            summary: "Replicator has failed to reconcile resources"
+          labels:
+            severity: critical
+            namespace: {{ .Release.Namespace }}
