@@ -10,7 +10,7 @@ spec:
       rules:
         - alert: replicator reconcile failing
           expr: sum(increase(controller_runtime_reconcile_errors_total{controller="replicationconfig"}[5m])) > 0
-          for: 5m
+          for: 10m
           annotations:
             consequence: Resources may not be replicated into target namespaces
             action: "Check the logs: `kubectl logs -n {{ .Release.Namespace }} deploy/{{ include "replicator.fullname" . }}`"
