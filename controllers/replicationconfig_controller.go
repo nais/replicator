@@ -103,6 +103,10 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			resource.SetOwnerReferences(ownerRef)
 			err = r.createUpdateResource(ctx, resource)
 			if err != nil {
+				if apierrors.HasStatusCause(err, v1.NamespaceTerminatingCause) {
+					log.Infof("namespace %q is terminating, skipping resource %v/%v", ns.Name, resource.GetKind(), resource.GetName())
+					continue
+				}
 				r.Recorder.Eventf(rc, "Warning", "createUpdateResource", "Unable to create/update resource %v/%v for namespace %q: %v", resource.GetKind(), resource.GetName(), ns.Name, err)
 				return ctrl.Result{}, err
 			}
