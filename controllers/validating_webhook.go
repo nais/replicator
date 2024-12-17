@@ -23,7 +23,7 @@ import (
 
 type ReplicatorValidator struct {
 	Client  client.Client
-	decoder *admission.Decoder
+	decoder admission.Decoder
 }
 
 func NewReplicatorValidator(mgr ctrl.Manager) *ReplicatorValidator {
