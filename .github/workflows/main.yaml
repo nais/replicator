@@ -1,8 +1,14 @@
 name: Build and push image and chart
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
-    branches:
-      - main
+    paths-ignore:
+      - hack/**
+      - '*.md'
+
 env:
   NAME: replicator
   IMAGE_REPOSITORY: oci://europe-north1-docker.pkg.dev/nais-io/nais
@@ -33,8 +39,10 @@ jobs:
         with:
           name: ${{ env.NAME }}
           google_service_account: gh-${{ env.NAME }}
+          push: ${{ github.actor != 'dependabot[bot]' }}
           workload_identity_provider: ${{ secrets.NAIS_IO_WORKLOAD_IDENTITY_PROVIDER }}
-          push: true
+          cache_from: type=gha
+          cache_to: type=gha,mode=max
       - uses: azure/setup-helm@v4
         name: "Setup Helm"
         with:
@@ -45,10 +53,12 @@ jobs:
           cat charts/Chart.yaml
           helm package charts
       - name: Push Chart
+        if: github.ref == 'refs/heads/main'
         run: |-
           helm push ${{ env.NAME }}*.tgz ${{ env.IMAGE_REPOSITORY }}
 
   rollout:
+    if: github.actor != 'dependabot[bot]' && github.ref == 'refs/heads/main'
     needs:
       - build_push
     runs-on: fasit-deploy
