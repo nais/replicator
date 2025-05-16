@@ -179,15 +179,15 @@ func (r *ReplicationConfigReconciler) createUpdateResource(ctx context.Context, 
 func (r *ReplicationConfigReconciler) updateResource(ctx context.Context, resource, existing *unstructured.Unstructured) error {
 	resourceContent, err := content.Get(resource)
 	if err != nil {
-		log.Warnf("unable to set resource content type: %v", err)
+		log.Warnf("unable to get resource content type: %v", err)
 	}
 
 	existingContent, err := content.Get(existing)
 	if err != nil {
-		log.Warnf("unable to set existing content type: %v", err)
+		log.Warnf("unable to get existing content type: %v", err)
 	}
 
-	if resourceContent.Equals(existingContent) {
+	if resourceContent != nil && existingContent != nil && resourceContent.Equals(existingContent) {
 		log.Debugf("unchanged resource %s%q for namespace %q", resource.GetKind(), resource.GetName(), resource.GetNamespace())
 		return nil
 	}
