@@ -28,7 +28,7 @@ func Get(data *unstructured.Unstructured) (ResourceContent, error) {
 	case data.UnstructuredContent()[StringDataContent] != nil:
 		return NewStringData(data)
 	default:
-		return nil, fmt.Errorf("no content found in %v", data.UnstructuredContent())
+		return NewGeneric(data)
 	}
 }
 

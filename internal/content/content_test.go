@@ -209,6 +209,67 @@ func TestContentHasChanged(t *testing.T) {
 				false,
 			),
 		},
+		{
+			name: "nothing changed, it should return false",
+			existingData: unstructuredDataWithoutContent(
+				false,
+				false,
+			),
+			rcInput: unstructuredDataWithoutContent(
+				false,
+				false,
+			),
+		},
+		{
+			name:           "rcInput annotations has changed, it should return true",
+			expectedChange: true,
+			existingData: unstructuredDataWithoutContent(
+				false,
+				false,
+			),
+			rcInput: unstructuredDataWithoutContent(
+				true,
+				false,
+			),
+		},
+		{
+			name:           "existingData annotations has changed, it should return true",
+			expectedChange: true,
+			existingData: unstructuredDataWithoutContent(
+				true,
+				false,
+			),
+			rcInput: unstructuredDataWithoutContent(
+				false,
+				false,
+			),
+		},
+
+		{
+			name:           "rcInput labels has changed, it should return true",
+			expectedChange: true,
+			existingData: unstructuredDataWithoutContent(
+				false,
+				false,
+			),
+			rcInput: unstructuredDataWithoutContent(
+				false,
+				true,
+			),
+		},
+
+		{
+			name:           "existingData labels has changed, it should return true",
+			expectedChange: true,
+			existingData: unstructuredDataWithoutContent(
+				false,
+				true,
+			),
+			rcInput: unstructuredDataWithoutContent(
+				false,
+				false,
+			),
+		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			rcContent, err := Get(tt.rcInput)
@@ -223,6 +284,36 @@ func TestContentHasChanged(t *testing.T) {
 			}
 			assert.Equal(t, tt.expectedChange, !rcContent.Equals(existingContent))
 		})
+	}
+}
+
+func unstructuredDataWithoutContent(annotations bool, labels bool) *unstructured.Unstructured {
+	if annotations {
+		return &unstructured.Unstructured{
+			Object: map[string]interface{}{
+				"metadata": map[string]interface{}{
+					"name":        "test",
+					"annotations": map[string]interface{}{"my-annotation": "my-value"},
+				},
+			},
+		}
+	}
+	if labels {
+		return &unstructured.Unstructured{
+			Object: map[string]interface{}{
+				"metadata": map[string]interface{}{
+					"name":   "test",
+					"labels": map[string]interface{}{"my-label": "my-value"},
+				},
+			},
+		}
+	}
+	return &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"metadata": map[string]interface{}{
+				"name": "test",
+			},
+		},
 	}
 }
 
