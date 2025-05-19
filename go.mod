@@ -8,8 +8,8 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.10.0
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/api v0.33.0
-	k8s.io/apimachinery v0.33.0
+	k8s.io/api v0.33.1
+	k8s.io/apimachinery v0.33.1
 	k8s.io/client-go v0.33.0
 	sigs.k8s.io/controller-runtime v0.20.4
 	sigs.k8s.io/controller-tools v0.18.0
