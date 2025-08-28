@@ -37,6 +37,9 @@ spec:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: prometheus
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: alloy
   podSelector:
     matchLabels:
       app: {{ .Release.Name }}
