@@ -3,8 +3,8 @@ dependencies:
     - cert-manager
 environmentKinds:
   - tenant
-  - legacy
   - onprem
+  - management
 values:
   apiserverIP:
     displayName: API server IP
