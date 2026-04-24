@@ -9,6 +9,9 @@ on:
       - hack/**
       - '*.md'
 
+permissions:
+  contents: read
+
 env:
   NAME: replicator
   IMAGE_REPOSITORY: oci://europe-north1-docker.pkg.dev/nais-io/nais
