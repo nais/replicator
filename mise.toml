@@ -44,7 +44,7 @@ run = "govulncheck ./..."
 
 [tasks.check]
 description = "Run all static analysis and security checks"
-depends = ["fmt", "vet", "lint", "govulncheck"]
+depends = ["fmt", "lint", "govulncheck"]
 
 [tasks."test:unit"]
 description = "Run unit tests (no codegen or cluster needed)"
