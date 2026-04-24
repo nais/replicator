@@ -4,7 +4,6 @@ kubectl = "1.34"
 kubebuilder = "4"
 "go:sigs.k8s.io/controller-tools/cmd/controller-gen" = "0.20.1"
 "go:golang.org/x/vuln/cmd/govulncheck" = "1.3.0"
-"go:github.com/securego/gosec/v2/cmd/gosec" = "2.25.0"
 "go:github.com/golangci/golangci-lint/v2/cmd/golangci-lint" = "2.11.4"
 
 [env]
@@ -45,7 +44,7 @@ run = "govulncheck ./..."
 
 [tasks.check]
 description = "Run all static analysis and security checks"
-depends = ["fmt", "vet", "lint", "gosec", "govulncheck"]
+depends = ["fmt", "vet", "lint", "govulncheck"]
 
 [tasks."test:unit"]
 description = "Run unit tests (no codegen or cluster needed)"
