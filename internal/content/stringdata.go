@@ -2,6 +2,7 @@ package content
 
 import (
 	b64 "encoding/base64"
+
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
@@ -13,6 +14,9 @@ type StringData struct {
 
 func NewStringData(data *unstructured.Unstructured) (*StringData, error) {
 	content, err := getContent(data, StringDataContent)
+	if err != nil {
+		return nil, err
+	}
 	contentHash, err := toHash(withEncodedValues(content))
 	if err != nil {
 		return nil, err

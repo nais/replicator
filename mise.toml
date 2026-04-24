@@ -1,0 +1,101 @@
+[tools]
+go = "1.26.2"
+kubectl = "1.34"
+kubebuilder = "4"
+"go:sigs.k8s.io/controller-tools/cmd/controller-gen" = "latest"
+"go:golang.org/x/vuln/cmd/govulncheck" = "latest"
+"go:github.com/securego/gosec/v2/cmd/gosec" = "latest"
+"go:github.com/golangci/golangci-lint/v2/cmd/golangci-lint" = "latest"
+
+[env]
+IMG = "replicator:latest"
+KIND_CLUSTER = "kind"
+CONTROLLER_GEN = "controller-gen"
+
+[tasks.manifests]
+description = "Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects"
+run = [
+  "controller-gen rbac:roleName=manager-role crd webhook paths='./...' output:crd:artifacts:config=config/crd/bases",
+  "controller-gen crd paths='./...' output:crd:artifacts:config=charts/templates",
+]
+
+[tasks.generate]
+description = "Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations"
+run = "controller-gen object:headerFile='hack/boilerplate.go.txt' paths='./...'"
+
+[tasks.fmt]
+description = "Run go fmt against code"
+run = "go fmt ./..."
+
+[tasks.vet]
+description = "Run go vet against code"
+run = "go vet ./..."
+
+[tasks.lint]
+description = "Run golangci-lint against code"
+run = "golangci-lint run ./..."
+
+[tasks.gosec]
+description = "Run gosec security scanner"
+run = "gosec ./..."
+
+[tasks.govulncheck]
+description = "Run govulncheck to check for known vulnerabilities"
+run = "govulncheck ./..."
+
+[tasks.check]
+description = "Run all static analysis and security checks"
+depends = ["fmt", "vet", "lint", "gosec", "govulncheck"]
+
+[tasks."test:unit"]
+description = "Run unit tests (no codegen or cluster needed)"
+run = "go test ./... -short -coverprofile cover.out"
+
+[tasks.test]
+description = "Run full test suite with codegen"
+depends = ["manifests", "generate", "fmt", "vet"]
+run = "go test ./... -coverprofile cover.out"
+
+[tasks.build]
+description = "Build manager binary"
+depends = ["manifests", "generate", "fmt", "vet"]
+run = "go build -o bin/manager main.go"
+
+[tasks.run]
+description = "Run a controller from your host"
+depends = ["manifests", "generate", "fmt", "vet"]
+env = { POD_NAMESPACE = "replicator-system" }
+run = "go run ./main.go -metrics-bind-address=127.0.0.1:8080 -health-probe-bind-address=127.0.0.1:8081 -enable-webhooks=false -debug"
+
+[tasks.docker-build]
+description = "Build docker image with the manager"
+depends = ["test"]
+run = "docker build -t $IMG ."
+
+[tasks.docker-push]
+description = "Push docker image with the manager"
+run = "docker push $IMG"
+
+[tasks.install]
+description = "Install CRDs into the K8s cluster specified in ~/.kube/config"
+depends = ["manifests"]
+run = "kustomize build config/crd | kubectl apply -f -"
+
+[tasks.uninstall]
+description = "Uninstall CRDs from the K8s cluster"
+depends = ["manifests"]
+run = "kustomize build config/crd | kubectl delete --ignore-not-found=true -f -"
+
+[tasks.deploy]
+description = "Deploy controller to the K8s cluster"
+depends = ["manifests"]
+run = [
+  "cd config/manager && kustomize edit set image controller=$IMG",
+  "kustomize build config/default | kubectl apply -f -",
+]
+
+[tasks.undeploy]
+description = "Undeploy controller from the K8s cluster"
+run = "kustomize build config/default | kubectl delete --ignore-not-found=true -f -"
+
+

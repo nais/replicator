@@ -180,14 +180,16 @@ func (r *ReplicationConfigReconciler) updateResource(ctx context.Context, resour
 	resourceContent, err := content.Get(resource)
 	if err != nil {
 		log.Warnf("unable to get resource content type: %v", err)
+		return nil
 	}
 
 	existingContent, err := content.Get(existing)
 	if err != nil {
 		log.Warnf("unable to get existing content type: %v", err)
+		return nil
 	}
 
-	if resourceContent != nil && existingContent != nil && resourceContent.Equals(existingContent) {
+	if resourceContent.Equals(existingContent) {
 		log.Debugf("unchanged resource %s%q for namespace %q", resource.GetKind(), resource.GetName(), resource.GetNamespace())
 		return nil
 	}
