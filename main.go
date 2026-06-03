@@ -111,7 +111,7 @@ func main() {
 	if err = (&controllers.ReplicationConfigReconciler{
 		Client:       mgr.GetClient(),
 		Scheme:       mgr.GetScheme(),
-		Recorder:     mgr.GetEventRecorderFor("replicator"),
+		Recorder:     mgr.GetEventRecorder("replicator"),
 		SyncInterval: interval,
 	}).SetupWithManager(mgr); err != nil {
 		log.Errorf("unable to create controller %v", err)

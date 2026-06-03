@@ -16,7 +16,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/tools/events"
 
 	naisiov1 "nais/replicator/api/v1"
 
@@ -30,7 +30,7 @@ import (
 type ReplicationConfigReconciler struct {
 	client.Client
 	Scheme       *runtime.Scheme
-	Recorder     record.EventRecorder
+	Recorder     events.EventRecorder
 	SyncInterval time.Duration
 }
 
@@ -87,7 +87,7 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 		renderResources, err := replicator.RenderResources(&replicator.TemplateValues{Values: replicator.Merge(values, nsv)}, rc.Spec.Resources)
 		if err != nil {
-			r.Recorder.Eventf(rc, "Warning", "RenderResources", "Unable to render resources for namespace %q: %v", ns.Name, err)
+			r.Recorder.Eventf(rc, nil, v1.EventTypeWarning, "Reconcile", "RenderResources", "Unable to render resources for namespace %q: %v", ns.Name, err)
 			return ctrl.Result{}, err
 		}
 
@@ -107,7 +107,7 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 					log.Infof("namespace %q is terminating, skipping resource %v/%v", ns.Name, resource.GetKind(), resource.GetName())
 					continue
 				}
-				r.Recorder.Eventf(rc, "Warning", "createUpdateResource", "Unable to create/update resource %v/%v for namespace %q: %v", resource.GetKind(), resource.GetName(), ns.Name, err)
+				r.Recorder.Eventf(rc, nil, v1.EventTypeWarning, "Reconcile", "CreateUpdateResource", "Unable to create/update resource %v/%v for namespace %q: %v", resource.GetKind(), resource.GetName(), ns.Name, err)
 				return ctrl.Result{}, err
 			}
 		}
@@ -123,7 +123,7 @@ func (r *ReplicationConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	rc.Status.SynchronizationTimestamp = metav1.Now()
 	rc.Status.SynchronizationHash = hash
 	if err := r.Status().Update(ctx, rc); err != nil {
-		r.Recorder.Eventf(rc, "Warning", "UpdateStatus", "Unable to update status for %q: %v", rc.Name, err)
+		r.Recorder.Eventf(rc, nil, v1.EventTypeWarning, "Reconcile", "UpdateStatus", "Unable to update status for %q: %v", rc.Name, err)
 		return ctrl.Result{}, err
 	}
 
