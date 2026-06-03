@@ -34,7 +34,7 @@ func RenderTemplate(values any, tpl string, options ...RenderOption) (*unstructu
 	v = repairMapAny(v)
 
 	u := &unstructured.Unstructured{
-		Object: v.(map[string]interface{}),
+		Object: v.(map[string]any),
 	}
 
 	return u, nil

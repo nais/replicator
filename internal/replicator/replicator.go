@@ -3,6 +3,7 @@ package replicator
 import (
 	"context"
 	"fmt"
+	"maps"
 	"os"
 	"strings"
 
@@ -40,9 +41,7 @@ func Merge(a, b map[string]string) map[string]string {
 	if a == nil {
 		return b
 	}
-	for k, v := range b {
-		a[k] = v
-	}
+	maps.Copy(a, b)
 	return a
 }
 

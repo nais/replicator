@@ -19,13 +19,13 @@ func TestContentHasChanged(t *testing.T) {
 	}{
 		{
 			name: "'stringData' has not changed, it should return false",
-			existingData: unstructuredData(DataContent, map[string]interface{}{
+			existingData: unstructuredData(DataContent, map[string]any{
 				"key": base64.StdEncoding.EncodeToString([]byte("my-value")),
 			},
 				false,
 				false,
 			),
-			rcInput: unstructuredData(StringDataContent, map[string]interface{}{
+			rcInput: unstructuredData(StringDataContent, map[string]any{
 				"key": "my-value",
 			},
 				false,
@@ -35,14 +35,14 @@ func TestContentHasChanged(t *testing.T) {
 		{
 			name:           "existingData 'stringData' changed, it should return true",
 			expectedChange: true,
-			existingData: unstructuredData(DataContent, map[string]interface{}{
+			existingData: unstructuredData(DataContent, map[string]any{
 				"key":       base64.StdEncoding.EncodeToString([]byte("my-value")),
 				"other-key": base64.StdEncoding.EncodeToString([]byte("my-other-value")),
 			},
 				false,
 				false,
 			),
-			rcInput: unstructuredData(StringDataContent, map[string]interface{}{
+			rcInput: unstructuredData(StringDataContent, map[string]any{
 				"key": "my-value",
 			},
 				false,
@@ -52,13 +52,13 @@ func TestContentHasChanged(t *testing.T) {
 		{
 			name:           "rcInput 'stringData' has changed, it should return true",
 			expectedChange: true,
-			existingData: unstructuredData(DataContent, map[string]interface{}{
+			existingData: unstructuredData(DataContent, map[string]any{
 				"key": base64.StdEncoding.EncodeToString([]byte("my-value")),
 			},
 				false,
 				false,
 			),
-			rcInput: unstructuredData(StringDataContent, map[string]interface{}{
+			rcInput: unstructuredData(StringDataContent, map[string]any{
 				"key": "otherValue",
 			},
 				false,
@@ -67,13 +67,13 @@ func TestContentHasChanged(t *testing.T) {
 		},
 		{
 			name: "'data' has not changed, it should return false",
-			existingData: unstructuredData(DataContent, map[string]interface{}{
+			existingData: unstructuredData(DataContent, map[string]any{
 				"key": "value",
 			},
 				false,
 				false,
 			),
-			rcInput: unstructuredData(DataContent, map[string]interface{}{
+			rcInput: unstructuredData(DataContent, map[string]any{
 				"key": "value",
 			},
 				false,
@@ -83,13 +83,13 @@ func TestContentHasChanged(t *testing.T) {
 		{
 			name:           "existingData 'data' changed, it should return true",
 			expectedChange: true,
-			existingData: unstructuredData(DataContent, map[string]interface{}{
+			existingData: unstructuredData(DataContent, map[string]any{
 				"other-key": "value",
 			},
 				false,
 				false,
 			),
-			rcInput: unstructuredData(DataContent, map[string]interface{}{
+			rcInput: unstructuredData(DataContent, map[string]any{
 				"key": "value",
 			},
 				false,
@@ -99,13 +99,13 @@ func TestContentHasChanged(t *testing.T) {
 		{
 			name:           "rcInput 'data' changed, it should return true",
 			expectedChange: true,
-			existingData: unstructuredData(DataContent, map[string]interface{}{
+			existingData: unstructuredData(DataContent, map[string]any{
 				"other-key": "value",
 			},
 				false,
 				false,
 			),
-			rcInput: unstructuredData(DataContent, map[string]interface{}{
+			rcInput: unstructuredData(DataContent, map[string]any{
 				"key": "value",
 			},
 				false,
@@ -114,13 +114,13 @@ func TestContentHasChanged(t *testing.T) {
 		},
 		{
 			name: "'spec' has not changed, it should return false",
-			existingData: unstructuredData(SpecContent, map[string]interface{}{
+			existingData: unstructuredData(SpecContent, map[string]any{
 				"replicas": "1",
 			},
 				false,
 				false,
 			),
-			rcInput: unstructuredData(SpecContent, map[string]interface{}{
+			rcInput: unstructuredData(SpecContent, map[string]any{
 				"replicas": "1",
 			},
 				false,
@@ -130,13 +130,13 @@ func TestContentHasChanged(t *testing.T) {
 		{
 			name:           "existingData 'spec' has changed, it should return true",
 			expectedChange: true,
-			existingData: unstructuredData(SpecContent, map[string]interface{}{
+			existingData: unstructuredData(SpecContent, map[string]any{
 				"replicas": "2",
 			},
 				false,
 				false,
 			),
-			rcInput: unstructuredData(SpecContent, map[string]interface{}{
+			rcInput: unstructuredData(SpecContent, map[string]any{
 				"replicas": "1",
 			},
 				false,
@@ -146,13 +146,13 @@ func TestContentHasChanged(t *testing.T) {
 		{
 			name:           "rcInput 'spec' has changed, it should return true",
 			expectedChange: true,
-			existingData: unstructuredData(SpecContent, map[string]interface{}{
+			existingData: unstructuredData(SpecContent, map[string]any{
 				"replicas": "1",
 			},
 				false,
 				false,
 			),
-			rcInput: unstructuredData(SpecContent, map[string]interface{}{
+			rcInput: unstructuredData(SpecContent, map[string]any{
 				"replicas": "2",
 			},
 				false,
@@ -162,11 +162,11 @@ func TestContentHasChanged(t *testing.T) {
 		{
 			name:           "rcInput annotations has changed, it should return true",
 			expectedChange: true,
-			existingData: unstructuredData(SpecContent, map[string]interface{}{},
+			existingData: unstructuredData(SpecContent, map[string]any{},
 				false,
 				false,
 			),
-			rcInput: unstructuredData(SpecContent, map[string]interface{}{},
+			rcInput: unstructuredData(SpecContent, map[string]any{},
 				true,
 				false,
 			),
@@ -174,11 +174,11 @@ func TestContentHasChanged(t *testing.T) {
 		{
 			name:           "existingData annotations has changed, it should return true",
 			expectedChange: true,
-			existingData: unstructuredData(SpecContent, map[string]interface{}{},
+			existingData: unstructuredData(SpecContent, map[string]any{},
 				true,
 				false,
 			),
-			rcInput: unstructuredData(SpecContent, map[string]interface{}{},
+			rcInput: unstructuredData(SpecContent, map[string]any{},
 				false,
 				false,
 			),
@@ -187,11 +187,11 @@ func TestContentHasChanged(t *testing.T) {
 		{
 			name:           "rcInput labels has changed, it should return true",
 			expectedChange: true,
-			existingData: unstructuredData(SpecContent, map[string]interface{}{},
+			existingData: unstructuredData(SpecContent, map[string]any{},
 				false,
 				false,
 			),
-			rcInput: unstructuredData(SpecContent, map[string]interface{}{},
+			rcInput: unstructuredData(SpecContent, map[string]any{},
 				false,
 				true,
 			),
@@ -200,11 +200,11 @@ func TestContentHasChanged(t *testing.T) {
 		{
 			name:           "existingData labels has changed, it should return true",
 			expectedChange: true,
-			existingData: unstructuredData(SpecContent, map[string]interface{}{},
+			existingData: unstructuredData(SpecContent, map[string]any{},
 				false,
 				true,
 			),
-			rcInput: unstructuredData(SpecContent, map[string]interface{}{},
+			rcInput: unstructuredData(SpecContent, map[string]any{},
 				false,
 				false,
 			),
@@ -290,40 +290,40 @@ func TestContentHasChanged(t *testing.T) {
 func unstructuredDataWithoutContent(annotations bool, labels bool) *unstructured.Unstructured {
 	if annotations {
 		return &unstructured.Unstructured{
-			Object: map[string]interface{}{
-				"metadata": map[string]interface{}{
+			Object: map[string]any{
+				"metadata": map[string]any{
 					"name":        "test",
-					"annotations": map[string]interface{}{"my-annotation": "my-value"},
+					"annotations": map[string]any{"my-annotation": "my-value"},
 				},
 			},
 		}
 	}
 	if labels {
 		return &unstructured.Unstructured{
-			Object: map[string]interface{}{
-				"metadata": map[string]interface{}{
+			Object: map[string]any{
+				"metadata": map[string]any{
 					"name":   "test",
-					"labels": map[string]interface{}{"my-label": "my-value"},
+					"labels": map[string]any{"my-label": "my-value"},
 				},
 			},
 		}
 	}
 	return &unstructured.Unstructured{
-		Object: map[string]interface{}{
-			"metadata": map[string]interface{}{
+		Object: map[string]any{
+			"metadata": map[string]any{
 				"name": "test",
 			},
 		},
 	}
 }
 
-func unstructuredData(contentKey string, contentValues map[string]interface{}, annotations bool, labels bool) *unstructured.Unstructured {
+func unstructuredData(contentKey string, contentValues map[string]any, annotations bool, labels bool) *unstructured.Unstructured {
 	if annotations {
 		return &unstructured.Unstructured{
-			Object: map[string]interface{}{
-				"metadata": map[string]interface{}{
+			Object: map[string]any{
+				"metadata": map[string]any{
 					"name":        "test",
-					"annotations": map[string]interface{}{"my-annotation": "my-value"},
+					"annotations": map[string]any{"my-annotation": "my-value"},
 				},
 				contentKey: contentValues,
 			},
@@ -331,18 +331,18 @@ func unstructuredData(contentKey string, contentValues map[string]interface{}, a
 	}
 	if labels {
 		return &unstructured.Unstructured{
-			Object: map[string]interface{}{
-				"metadata": map[string]interface{}{
+			Object: map[string]any{
+				"metadata": map[string]any{
 					"name":   "test",
-					"labels": map[string]interface{}{"my-label": "my-value"},
+					"labels": map[string]any{"my-label": "my-value"},
 				},
 				contentKey: contentValues,
 			},
 		}
 	}
 	return &unstructured.Unstructured{
-		Object: map[string]interface{}{
-			"metadata": map[string]interface{}{
+		Object: map[string]any{
+			"metadata": map[string]any{
 				"name": "test",
 			},
 			contentKey: contentValues,

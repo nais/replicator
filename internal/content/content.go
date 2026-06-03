@@ -40,10 +40,10 @@ func toHash(input any) (string, error) {
 	return fmt.Sprintf("%x", hash), nil
 }
 
-func getContent(data *unstructured.Unstructured, contentType string) (map[string]interface{}, error) {
+func getContent(data *unstructured.Unstructured, contentType string) (map[string]any, error) {
 	content := data.UnstructuredContent()[contentType]
 	if content == nil {
 		return nil, fmt.Errorf("content type %q not found with data %v", contentType, data.UnstructuredContent())
 	}
-	return content.(map[string]interface{}), nil
+	return content.(map[string]any), nil
 }

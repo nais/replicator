@@ -54,8 +54,8 @@ func (s *StringData) Labels() string {
 	return s.labels
 }
 
-func withEncodedValues(data map[string]interface{}) map[string]interface{} {
-	outputs := make(map[string]interface{}, len(data))
+func withEncodedValues(data map[string]any) map[string]any {
+	outputs := make(map[string]any, len(data))
 
 	for k, v := range data {
 		outputs[k] = b64.StdEncoding.EncodeToString([]byte(v.(string)))
