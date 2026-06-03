@@ -62,7 +62,3 @@ type Namespace struct {
 	Labels      []string `json:"labels,omitempty"`
 	Annotations []string `json:"annotations,omitempty"`
 }
-
-func init() {
-	SchemeBuilder.Register(&ReplicationConfig{}, &ReplicationConfigList{})
-}
